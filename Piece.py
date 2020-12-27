@@ -1,10 +1,25 @@
 class Piece:
-    def imprimirDelPiece(self):
-        print ("Impreso desde Piece Base")
-
-class PieceRey(Piece):
-    def imprimirDelPiece(self):
-        print ("Impreso desde pieceRey")
-
+    def __init__(self, player):
+        self.player = player    #ownership
+    
 class Empty(Piece):
-    graphic = " "
+    graphic = ' '
+
+class King(Piece):
+    graphic = "K"
+
+class Queen(Piece):
+    graphic = "Q"
+
+class Rook(Piece):
+    graphic = "R"
+
+class Bishop(Piece):
+    graphic = "B"
+
+class Knight(Piece):
+    graphic = "N"
+
+class Pawn(Piece):
+    graphic = "P"
+

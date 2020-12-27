@@ -3,6 +3,10 @@ class Index:
         self.row = r
         self.column = c
 
+class Vector2:
+    def __init__(self, r, c):
+        self.r = r
+        self.c = c
 
 class Square:
     def __init__(self, index, piece, active):
