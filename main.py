@@ -64,10 +64,10 @@ def translate(pointA, pointB, grid):
     if grid[pointA.r][pointA.c].piece.legalMove(pointB, grid):
         grid[pointB.r][pointB.c].piece.die()
         grid[pointB.r][pointB.c].piece = grid[pointA.r][pointA.c].piece
-        grid[pointA.r][pointA.c].piece = Empty(Cell(pointA.r, pointA.c), 0)
+        grid[pointA.r][pointA.c].piece = Empty(Cell(pointA.r, pointA.c), 0, "none", whitePerspective)
         return True
     else:
-        print("Can't move there.")
+        print("Can not perform the command. ")
         return False
 
 ###############################################
@@ -105,37 +105,37 @@ grid = []
 for r in range(8):
     tempRow = []
     for c in range(8):
-            tempRow.append(Square(Cell(yLabel[r], xLabel[c]),Empty(Cell(yLabel[r], xLabel[c]), 0), False))
+            tempRow.append(Square(Cell(yLabel[r], xLabel[c]),Empty(Cell(yLabel[r], xLabel[c]), 0, "none", whitePerspective), False))
     grid.append(tempRow)
 #Fill Board with pieces
 player = "black"
 if (turn == -1):
     player = "white"
-grid[0][0].piece = Rook(Cell(0,0), 1, player)
-grid[0][1].piece = Knight(Cell(0,1), 2, player)
-grid[0][2].piece = Bishop(Cell(0,2), 3, player)
-grid[0][3].piece = Queen(Cell(0,3), 4, player)
-grid[0][4].piece = King(Cell(0,4), 5, player)
-grid[0][5].piece = Bishop(Cell(0,5), 6, player)
-grid[0][6].piece = Knight(Cell(0,6), 7, player)
-grid[0][7].piece = Rook(Cell(0,7), 8, player)
+grid[0][0].piece = Rook(Cell(0,0), 1, player, whitePerspective)
+grid[0][1].piece = Knight(Cell(0,1), 2, player, whitePerspective)
+grid[0][2].piece = Bishop(Cell(0,2), 3, player, whitePerspective)
+grid[0][3].piece = Queen(Cell(0,3), 4, player, whitePerspective)
+grid[0][4].piece = King(Cell(0,4), 5, player, whitePerspective)
+grid[0][5].piece = Bishop(Cell(0,5), 6, player, whitePerspective)
+grid[0][6].piece = Knight(Cell(0,6), 7, player, whitePerspective)
+grid[0][7].piece = Rook(Cell(0,7), 8, player, whitePerspective)
 for i in range(8):
-    grid[1][i].piece = Pawn(Cell(1,i), 9 + i, player)
+    grid[1][i].piece = Pawn(Cell(1,i), 9 + i, player, whitePerspective)
 
 if (player == "black"):
     player = "white"
 else:
     player = "black"
-grid[7][0].piece = Rook(Cell(7,0), 20, player)
-grid[7][1].piece = Knight(Cell(7,1), 21, player)
-grid[7][2].piece = Bishop(Cell(7,2), 22, player)
-grid[7][3].piece = Queen(Cell(7,3), 23, player)
-grid[7][4].piece = King(Cell(7,4), 24, player)
-grid[7][5].piece = Bishop(Cell(7,5), 25, player)
-grid[7][6].piece = Knight(Cell(7,6), 26, player)
-grid[7][7].piece = Rook(Cell(7,7), 27, player)
+grid[7][0].piece = Rook(Cell(7,0), 20, player, whitePerspective)
+grid[7][1].piece = Knight(Cell(7,1), 21, player, whitePerspective)
+grid[7][2].piece = Bishop(Cell(7,2), 22, player, whitePerspective)
+grid[7][3].piece = Queen(Cell(7,3), 23, player, whitePerspective)
+grid[7][4].piece = King(Cell(7,4), 24, player, whitePerspective)
+grid[7][5].piece = Bishop(Cell(7,5), 25, player, whitePerspective)
+grid[7][6].piece = Knight(Cell(7,6), 26, player, whitePerspective)
+grid[7][7].piece = Rook(Cell(7,7), 27, player, whitePerspective)
 for i in range(8):
-    grid[6][i].piece = Pawn(Cell(6,i), 28 + i, player)
+    grid[6][i].piece = Pawn(Cell(6,i), 28 + i, player, whitePerspective)
 
 #Show Board
 showBoard()
@@ -175,6 +175,8 @@ while (not gameOver):
         legal = translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
         
     showBoard()
+
+    turn *= -1
 
     
 

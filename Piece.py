@@ -1,8 +1,9 @@
 class Piece:
-    def __init__(self, index, id, player = "none"):  #Vector2, String
+    def __init__(self, index, id, player, whitePerspectiveBool):  #Vector2, String
         self.player = player    #ownership
         self.index = index
         self.id = id
+        self.whitePerspective = whitePerspectiveBool
 
     def die(self):
         pass

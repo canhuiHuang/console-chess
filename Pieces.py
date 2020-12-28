@@ -4,6 +4,10 @@ from VectorX import *
 class Empty(Piece):
     graphic = ' '
 
+    def legalMove(self, pointB = 0, grid = 0):
+        print("There is nothing to move!")
+        return False
+
 class King(Piece):
     graphic = "K"
 
@@ -89,7 +93,7 @@ class Bishop(Piece):
                 if (grid[self.index.r + i][self.index.c + i].piece.graphic != ' ' and grid[self.index.r + i][self.index.c + i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r + i][self.index.c + i].piece.graphic != ' '):
-                    print ("Obstructed ", end = '')
+                    print ("Obstructed - Can't move there.", end = '')
                     return False    #Obstructed.
 
         elif (deltaY < 0 and deltaX < 0):
@@ -97,7 +101,7 @@ class Bishop(Piece):
                 if (grid[self.index.r - i][self.index.c - i].piece.graphic != ' ' and grid[self.index.r - i][self.index.c - i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r - i][self.index.c - i].piece.graphic != ' '):
-                    print ("Obstructed ", end = '')
+                    print ("Obstructed - Can't move there.", end = '')
                     return False    #Obstructed.
         
         elif (deltaY < 0 and deltaX > 0):
@@ -105,7 +109,7 @@ class Bishop(Piece):
                 if (grid[self.index.r - i][self.index.c + i].piece.graphic != ' ' and grid[self.index.r - i][self.index.c + i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r - i][self.index.c + i].piece.graphic != ' '):
-                    print ("Obstructed ", end = '')
+                    print ("Obstructed - Can't move there.", end = '')
                     return False    #Obstructed.
         
         elif (deltaY > 0 and deltaX < 0):
@@ -113,15 +117,70 @@ class Bishop(Piece):
                 if (grid[self.index.r + i][self.index.c - i].piece.graphic != ' ' and grid[self.index.r + i][self.index.c - i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r + i][self.index.c - i].piece.graphic != ' '):
-                    print ("Obstructed ", end = '')
+                    print ("Obstructed - Can't move there.", end = '')
                     return False    #Obstructed.
 
-        
-
+        return True
 
 class Knight(Piece):
     graphic = "N"
 
 class Pawn(Piece):
     graphic = "P"
+
+    doublePushAvailable = True
+    enPassanteable = False
+
+    prevActiveThreatSquares = []
+    prevPassiveThreatSquares = []
+
+    def legalMove(self, pointB, grid):
+        if (grid[pointB.r][pointB.c].piece.player == self.player):
+            return False    #Fuego Amigo xD 
+
+        #Determine directional slope from A to B:
+        deltaY = pointB.r - self.index.r
+        deltaX = pointB.c - self.index.c
+
+        if abs(deltaX) > 1:
+            print("Can't move there. ")
+            return False
+
+        if (grid[pointB.r][pointB.c].piece.id != 0):
+            print("Obstructed. Can't move there.")
+            return False
+
+        if (self.whitePerspective):
+            if (self.player == "white" and deltaY >= 0):
+                print("Can't move there. 1 ")
+                return False
+            elif (self.player == "black" and deltaY <= 0):
+                print("Can't move there. 2")
+                return False
+        else:
+            if (self.player == "white" and deltaY <= 0):
+                print("Can't move there. 3")
+                return False
+            elif (self.player == "black" and deltaY >= 0):
+                print("Can't move there. 4")
+                return False
+
+        distance = abs(deltaY)
+        if (distance == 2 and grid[pointB.r + deltaY][pointB.c].piece.id == 0):  #If doublePush, and y+1 & y+2 are empty.
+            if (not self.doublePushAvailable):
+                print("Can't do that. ")
+                return False
+            else:
+                self.doublePushAvailable = False
+                return True
+        elif (distance == 1 and grid[pointB.r][pointB.c].piece.id != 0):
+            print("Obstructed. Can't move there.")
+            return False
+        
+        return True
+
+
+
+
+
 

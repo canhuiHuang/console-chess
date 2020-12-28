@@ -8,3 +8,4 @@ class Square:
     #Setters:
     def setPiece(self, newPiece):
         self.piece = newPiece
+
