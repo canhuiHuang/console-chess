@@ -1,25 +1,11 @@
 class Piece:
-    def __init__(self, player):
+    def __init__(self, index, player):  #Vector2, String
         self.player = player    #ownership
-    
-class Empty(Piece):
-    graphic = ' '
+        self.index = index
 
-class King(Piece):
-    graphic = "K"
-
-class Queen(Piece):
-    graphic = "Q"
-
-class Rook(Piece):
-    graphic = "R"
-
-class Bishop(Piece):
-    graphic = "B"
-
-class Knight(Piece):
-    graphic = "N"
-
-class Pawn(Piece):
-    graphic = "P"
-
+#Utilidades
+def min(a,b):
+    if a >= b:
+        return a
+    else:
+        return b
