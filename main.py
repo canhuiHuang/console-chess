@@ -15,7 +15,7 @@ def showBoard():
         print(' ', xLabel[i],' ', end = '')
     print()
 
-def code2Coords(codeString):
+def notation2Coord(codeString):        #Converts cmd to Coord in the grid. 
     r = -1
     c = -1
 
@@ -29,11 +29,11 @@ def code2Coords(codeString):
 
     return Cell(r,c)
 
-def translate(pointA, pointB, grid):   #(Cell, Cell)
+def translate(pointA, pointB):   #(Cell, Cell, )
 
     grid[pointB.r][pointB.c].piece.die()
     grid[pointB.r][pointB.c].piece = grid[pointA.r][pointA.c].piece
-    grid[pointA.r][pointA.c].piece = Empty(Cell(pointA.r, pointA.c),"none")
+    grid[pointA.r][pointA.c].piece = Empty(Cell(pointA.r, pointA.c))
 
 
 
@@ -72,7 +72,7 @@ grid = []
 for r in range(8):
     tempRow = []
     for c in range(8):
-            tempRow.append(Square(Cell(yLabel[r], xLabel[c]),Empty(Cell(yLabel[r], xLabel[c]),"none"), False))
+            tempRow.append(Square(Cell(yLabel[r], xLabel[c]),Empty(Cell(yLabel[r], xLabel[c])), False))
     grid.append(tempRow)
 #Fill Board with pieces
 player = "black"
@@ -108,10 +108,15 @@ for i in range(8):
 showBoard()
 
 while (not gameOver):
+    playerInput = "none"
     if (turn == 1):
         playerInput = input(whiteInputPrompt)
     else:
         playerInput = input(blackInputPrompt)
+
+    translate(notation2Coord(playerInput[0] + playerInput[1]),notation2Coord(playerInput[3] + playerInput[4]))
+
+    
 
     
 

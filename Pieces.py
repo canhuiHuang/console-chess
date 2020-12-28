@@ -82,37 +82,37 @@ class Bishop(Piece):
 
         distance = min(abs(deltaY), abs(deltaX))
 
+        if (grid[pointB.r][pointB.c].piece.player == self.player):
+            return False    #Fuego Amigo xD 
+
         if (deltaY > 0 and deltaX > 0):
             for i in range (1, distance + 1):
                 if (grid[self.index.r + i][self.index.c + i].piece.graphic != ' ' and grid[self.index.r + i][self.index.c + i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r + i][self.index.c + i].piece.graphic != ' '):
-                    return False    #Obstruido.
+                    return False    #Obstructed.
 
         elif (deltaY < 0 and deltaX < 0):
             for i in range (1, distance + 1):
                 if (grid[self.index.r - i][self.index.c - i].piece.graphic != ' ' and grid[self.index.r - i][self.index.c - i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r - i][self.index.c - i].piece.graphic != ' '):
-                    return False    #Obstruido.
+                    return False    #Obstructed.
         
         elif (deltaY < 0 and deltaX > 0):
             for i in range (1, distance + 1):
                 if (grid[self.index.r - i][self.index.c + i].piece.graphic != ' ' and grid[self.index.r - i][self.index.c + i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r - i][self.index.c + i].piece.graphic != ' '):
-                    return False    #Obstruido.
+                    return False    #Obstructed.
         
         elif (deltaY > 0 and deltaX < 0):
             for i in range (1, distance + 1):
                 if (grid[self.index.r + i][self.index.c - i].piece.graphic != ' ' and grid[self.index.r + i][self.index.c - i].piece.id == grid[pointB.r][pointB.c].piece.id):
                     return True
                 elif (grid[self.index.r + i][self.index.c - i].piece.graphic != ' '):
-                    return False    #Obstruido.
+                    return False    #Obstructed.
 
-
-
-        #/
         
 
 

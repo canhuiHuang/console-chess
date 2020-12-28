@@ -4,3 +4,7 @@ class Square:
         self.index = index
         self.piece = piece
         self.active = active
+
+    #Setters:
+    def setPiece(self, newPiece):
+        self.piece = newPiece
