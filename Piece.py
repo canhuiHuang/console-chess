@@ -1,16 +1,8 @@
 class Piece:
-    def __init__(self, index, player = "none"):  #Vector2, String
+    def __init__(self, index, id, player = "none"):  #Vector2, String
         self.player = player    #ownership
         self.index = index
-
-    def shootThreatLine(self):
-        pass
-
-    def unthreat(self):
-        pass
-
-    def legalMove(self):
-        pass
+        self.id = id
 
     def die(self):
         pass
