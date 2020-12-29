@@ -44,22 +44,18 @@ def isCmdValid(cmd):    #Also sets the formatting.
     if (cmd[0] not in xLabel):
         print("Invalid Command.")
         return "invalid"
-    if (cmd[1] not in str(yLabel)):
+    if (cmd[1] not in (yLabel)):
         print("Invalid Command.")
         return "invalid"
     newText += cmd[0] + cmd[1]
-    
-    i = 2
-    while (cmd[i] == ' '):
-        i += 1
 
-    if (cmd[i] not in xLabel):
+    if (cmd[3] not in xLabel):
         print("Invalid Command.")
         return "invalid"
-    if (cmd[i + 1] not in str(yLabel)): 
+    if (cmd[4] not in (yLabel)): 
         print("Invalid Command.")
         return "invalid"
-    newText += ' ' + cmd[i] + cmd[i + 1]
+    newText += ' ' + cmd[3] + cmd[4]
 
     return newText
 
@@ -98,7 +94,7 @@ turns = [1, -1]
 turn = random.choice(turns) #1 for white, #-1 for black
 
 whitePerspective = True
-yLabel = [1,2,3,4,5,6,7,8]
+yLabel = ['1','2','3','4','5','6','7','8']
 xLabel = ['a','b','c','d','e','f','g','h']
 
 whiteActiveThreatSquares = [[0]*8]*8
@@ -197,6 +193,7 @@ while (not gameOver):
                 playerInput = input(blackInputPrompt)
 
         legal = translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
+
     #Next turn    
     turn *= -1
         

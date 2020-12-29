@@ -24,7 +24,6 @@ class Rook(Piece):
 
         if (deltaY == 0 and deltaX != 0) or (deltaY != 0 and deltaX == 0):  #There is only one 0 in {rb - ra, cb - ca}
             distance = abs(deltaY + deltaX)
-            print (distance)
 
             if (deltaX > 0):
                 for i in range(1, distance + 1):
