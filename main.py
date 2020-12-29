@@ -5,6 +5,15 @@ from VectorX import *
 
 #Functions
 def showBoard():
+    print ("|------------------------------------------------------|")
+    if whitePerspective and turn == -1:
+        print("|        black                                         |")
+    elif (not whitePerspective and turn == 1):
+        print("|        white                                         |")
+    else:
+        print("|                                                      |")
+    print ("|------------------------------------------------------|")
+
     for r in range(8):
         print(' ', yLabel[7 - r],' ', end = '')
         for c in range(8):
@@ -12,8 +21,17 @@ def showBoard():
         print()
     print ("     ", end = '')
     for i in range(8):
-        print(' ', xLabel[i],' ', end = '')
+        print(' ', xLabel[i],'  ', end = '')
     print()
+
+    print ("|------------------------------------------------------|")
+    if whitePerspective and turn == 1:
+        print("|       White                                          |")
+    elif not whitePerspective and turn == -1:
+        print("|       Black                                          |")
+    else:
+        print("|                                                      |")
+    print ("|------------------------------------------------------|")
 
 def isCmdValid(cmd):    #Also sets the formatting.
     newText = ""
@@ -26,7 +44,7 @@ def isCmdValid(cmd):    #Also sets the formatting.
     if (cmd[0] not in xLabel):
         print("Invalid Command.")
         return "invalid"
-    elif (cmd[1] not in str(yLabel)):
+    if (cmd[1] not in str(yLabel)):
         print("Invalid Command.")
         return "invalid"
     newText += cmd[0] + cmd[1]
@@ -38,7 +56,7 @@ def isCmdValid(cmd):    #Also sets the formatting.
     if (cmd[i] not in xLabel):
         print("Invalid Command.")
         return "invalid"
-    elif (cmd[i + 1] not in str(yLabel)): 
+    if (cmd[i + 1] not in str(yLabel)): 
         print("Invalid Command.")
         return "invalid"
     newText += ' ' + cmd[i] + cmd[i + 1]
@@ -61,13 +79,18 @@ def pair2Coord(pairString):        #Converts cmd to Coord in the grid.
 
 def translate(pointA, pointB, grid):
 
-    if grid[pointA.r][pointA.c].piece.legalMove(pointB, grid):
-        grid[pointB.r][pointB.c].piece.die()
-        grid[pointB.r][pointB.c].piece = grid[pointA.r][pointA.c].piece
-        grid[pointA.r][pointA.c].piece = Empty(Cell(pointA.r, pointA.c), 0, "none", whitePerspective)
-        return True
+    if (turn == 1 and grid[pointA.r][pointA.c].piece.player == "white") or (turn == -1 and grid[pointA.r][pointA.c].piece.player == "black"):
+        if grid[pointA.r][pointA.c].piece.legalMove(pointB, grid):
+            grid[pointA.r][pointA.c].piece.move(pointB,grid)
+            return True
+        else:
+            print("Can not perform the command. ")
+            return False
+    elif (grid[pointA.r][pointA.c].piece.player == "none"):
+        print("No piece selected to move. ")
+        return False
     else:
-        print("Can not perform the command. ")
+        print("Can't move opponent's piece. ")
         return False
 
 ###############################################
@@ -137,6 +160,7 @@ grid[7][7].piece = Rook(Cell(7,7), 27, player, whitePerspective)
 for i in range(8):
     grid[6][i].piece = Pawn(Cell(6,i), 28 + i, player, whitePerspective)
 
+turn = 1
 #Show Board
 showBoard()
 
@@ -173,10 +197,12 @@ while (not gameOver):
                 playerInput = input(blackInputPrompt)
 
         legal = translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
+    #Next turn    
+    turn *= -1
         
     showBoard()
 
-    turn *= -1
+
 
     
 
