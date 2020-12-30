@@ -5,10 +5,16 @@ class King(Piece):
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "K" + player[0]
 
-class Queen(Piece):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
-        self.graphic = "Q" + player[0]
+    def legalMove(self, pointB, grid):
+        deltaY = pointB.r - self.index.r
+        deltaX = pointB.c - self.index.c
+
+        if (abs(deltaY) == 1 and abs(deltaY) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 0) or (abs(deltaY) == 0 and abs(deltaX) == 1):
+            if (grid[pointB.r][pointB.c].piece.id == self.id):
+                print("Obstructed.")
+                return False
+            else:   #Add more code later
+                return True
 
 class Rook(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
@@ -70,15 +76,6 @@ class Rook(Piece):
                         return True
                     elif (grid[self.index.r - i][self.index.c].piece.id == 0 and i == distance):
                         return True
-
-                        
-
-
-
-
-
-
-
 
 class Bishop(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
@@ -195,6 +192,19 @@ class Knight(Piece):
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "N" + player[0]
 
+    def legalMove(self, pointB, grid):
+        deltaY = pointB.r - self.index.r
+        deltaX = pointB.c - self.index.c
+
+        if (abs(deltaY) == 2 and abs(deltaX) == 1) or (abs(deltaY == 1) and abs(deltaX == 2)):  #Only if move is an L mov
+            if (grid[pointB.r][pointB.c].piece.id == self.id):
+                print("Can't move there")
+                return False
+            else:
+                return True
+        else:
+            return False
+
 class Pawn(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
@@ -282,7 +292,19 @@ class Pawn(Piece):
         #Unless a case is missing, return True here should be fine
         return True
 
+class Queen(Bishop, Rook):
+    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+        self.graphic = "Q" + player[0]
 
+    def legalMove(self, pointB, grid):
+        deltaY = pointB.r - self.index.r
+        deltaX = pointB.c - self.index.c
+
+        if (abs(deltaY) == abs(deltaX)):
+            return Bishop.legalMove(self, pointB, grid)
+        elif (abs(deltaY) == 0 and abs(deltaX) != 0) or (abs(deltaY) != 0 and abs(deltaX) == 0):
+            return Rook.legalMove(self, pointB, grid)
 
 
 

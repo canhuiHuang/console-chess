@@ -37,25 +37,32 @@ def isCmdValid(cmd):    #Also sets the formatting.
     newText = ""
     text = cmd.lower()
 
-    if len(text) > 20:
+    if len(text) > 20 or len(text) < 5:
         print("Invalid Command or too long.")
         return "invalid"
 
     if (cmd[0] not in xLabel):
         print("Invalid Command.")
         return "invalid"
+    else:
+        newText += cmd[0]
+
     if (cmd[1] not in (yLabel)):
         print("Invalid Command.")
         return "invalid"
-    newText += cmd[0] + cmd[1]
+    else:
+        newText += cmd[1]
 
     if (cmd[3] not in xLabel):
         print("Invalid Command.")
         return "invalid"
+    else:
+        newText += ' ' + cmd[3]
     if (cmd[4] not in (yLabel)): 
         print("Invalid Command.")
         return "invalid"
-    newText += ' ' + cmd[3] + cmd[4]
+    else:
+        newText += cmd[4]
 
     return newText
 
