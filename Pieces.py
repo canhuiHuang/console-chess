@@ -5,7 +5,7 @@ class King(Piece):
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "K" + player[0]
 
-    def legalMove(self, pointB, grid):
+    def moveable(self, pointB, grid):
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
 
@@ -21,7 +21,7 @@ class Rook(Piece):
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "R" + player[0]
 
-    def legalMove(self, pointB, grid):
+    def moveable(self, pointB, grid):
         if (grid[pointB.r][pointB.c].piece.player == self.player):
             return False    #Fuego Amigo xD 
 
@@ -80,66 +80,23 @@ class Rook(Piece):
 class Bishop(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
-        self.graphic = "B" + player[0]
-    prevActiveThreatSquares = []
-    prevPassiveThreatSquares = []
+        self.graphic = "B" + player[0]   
 
-    def createMonoDirectionalThreatLine(self, y, x, guardEncountered, activethreatSquares, passivethreatSquares, grid, prevActiveThreatSquares, prevPassiveThreatSquares):
-        if (grid[y][x].piece.graphic == ' ' and not guardEncountered):
-            activethreatSquares[y][x] += 1
-            prevActiveThreatSquares.append(Cell(y,x))
-            return False
-        elif (not guardEncountered):
-            activethreatSquares[y][x] += 1
-            prevActiveThreatSquares.append(Cell(y,x))
-            return True
-        elif (guardEncountered):
-            passivethreatSquares[y][x] += 1
-            prevPassiveThreatSquares.append(Cell(y,x))
-            return guardEncountered
+    def firstEnemyPiecesThreatened(self, grid):   #Returns The first Enemy Pieces Threatened by this piece
 
-    def shootThreatLine(self, activethreatSquares, passivethreatSquares, grid, prevActiveThreatSquares, prevPassiveThreatSquares):   #Creates or Updates Threat Line
-        #Example: pYpX is the distance from index to an end of the board with the Slope(positive Y,Positive X) . The slope on this one is: m = 1/2.
-        pYpX = 8 - self.index.c
-        nYpX = 8 - self.index.r
-        nYnX = 8 - pYpX
-        pYnX = 8 - nYpX
-
-        #/
-        guardEncountered = False
-        for i in range(1, pYpX):
-            y = self.index.r + i
-            x = self.index.c + i
-            guardEncountered = self.createMonoDirectionalThreatLine(y,x, guardEncountered, activethreatSquares, passivethreatSquares, grid, prevPassiveThreatSquares, prevPassiveThreatSquares)
-        guardEncountered = False
-        for i in range(1, nYnX):
-            y = self.index.r - i
-            x = self.index.c - i
-            guardEncountered = self.createMonoDirectionalThreatLine(y,x, guardEncountered, activethreatSquares, passivethreatSquares, grid, prevPassiveThreatSquares, prevPassiveThreatSquares)
-
-        #\
-        guardEncountered = False
-        for i in range(1, nYpX):
-            y = self.index.r - i
-            x = self.index.c + i
-            guardEncountered = self.createMonoDirectionalThreatLine(y,x, guardEncountered, activethreatSquares, passivethreatSquares, grid, prevPassiveThreatSquares, prevPassiveThreatSquares)
-        guardEncountered = False
-        for i in range(1, pYnX):
-            y = self.index.r + i
-            x = self.index.c - i
-            guardEncountered = self.createMonoDirectionalThreatLine(y,x, guardEncountered, activethreatSquares, passivethreatSquares, grid, prevPassiveThreatSquares, prevPassiveThreatSquares)
-    
-    def unthreat(self, activethreatSquares,passivethreatSquares, grid, prevActiveThreatSquares, prevPassiveThreatSquares):
-        for i in range(len(prevActiveThreatSquares)):
-            activethreatSquares[prevActiveThreatSquares[i].r][prevActiveThreatSquares[i].c] -= 1
+        l = [] 
+        for i in range(8):
+            r = (self.index.r + i) % 8
+            c = (self.index.c + i) % 8
+            r2 = (self.index.c - i) % 8
+            if (grid[r][c].piece.id != 0 and grid[r][c].piece.id != self.id):   #/
+                l.append(grid[r][c].piece.id)
+            if (grid[r2][r].piece.id != 0 and grid[r2][c].piece.id != self.id):   #\
+                l.append(grid[r2][c].piece.id)
         
-        for i in range(len(prevPassiveThreatSquares)):
-            passivethreatSquares[prevPassiveThreatSquares[i].r][prevPassiveThreatSquares[i].c] -= 1
-                    
-        prevActiveThreatSquares.clear()
-        prevPassiveThreatSquares.clear()
+        return l
 
-    def legalMove(self, pointB, grid):
+    def moveable(self, pointB, grid):
         if (grid[pointB.r][pointB.c].piece.player == self.player):
             return False    #Fuego Amigo xD 
 
@@ -151,7 +108,7 @@ class Bishop(Piece):
              print ("Can't move there. ", end = '')
              return False 
 
-        nonHypotenuseDistance = abs(deltaX)
+        nonHypotenuseDistance = abs(deltaX) #Catetos
 
         if (deltaY > 0 and deltaX > 0):     #\ down
             for i in range (1, nonHypotenuseDistance + 1):
@@ -192,7 +149,7 @@ class Knight(Piece):
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "N" + player[0]
 
-    def legalMove(self, pointB, grid):
+    def moveable(self, pointB, grid):
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
 
@@ -229,7 +186,7 @@ class Pawn(Piece):
         self.index = Cell(pointB.r,pointB.c)
         grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), 0, "none", self.whitePerspective)
 
-    def legalMove(self, pointB, grid):
+    def moveable(self, pointB, grid):
         if (grid[pointB.r][pointB.c].piece.player == self.player):
             return False    #Fuego Amigo xD 
 
@@ -297,14 +254,14 @@ class Queen(Bishop, Rook):
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "Q" + player[0]
 
-    def legalMove(self, pointB, grid):
+    def moveable(self, pointB, grid):
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
 
         if (abs(deltaY) == abs(deltaX)):
-            return Bishop.legalMove(self, pointB, grid)
+            return Bishop.moveable(self, pointB, grid)
         elif (abs(deltaY) == 0 and abs(deltaX) != 0) or (abs(deltaY) != 0 and abs(deltaX) == 0):
-            return Rook.legalMove(self, pointB, grid)
+            return Rook.moveable(self, pointB, grid)
 
 
 
