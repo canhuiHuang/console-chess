@@ -16,6 +16,20 @@ class King(Piece):
             else:   #Add more code later
                 return True
 
+    def move(self, pointB, grid):
+        ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
+        if not ghost.amIUnderAttackedIn(grid):
+            #Move
+            grid[pointB.r][pointB.c].piece =  self
+            grid[pointB.r][pointB.c].piece.die()
+            #Update index
+            tempIndex = Cell(self.index.r, self.index.c)
+            self.index = Cell(pointB.r,pointB.c)
+            grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+            return True
+        else:
+            return False
+
 class Rook(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
@@ -33,68 +47,54 @@ class Rook(Piece):
 
             if (deltaX > 0):
                 for i in range(1, distance + 1):
-                    if (grid[self.index.r][self.index.c + i].piece.id != 0 and grid[self.index.r][self.index.c + i].piece.player == self.player):   #if owned piece is in a way
+                    if (grid[self.index.r][self.index.c + i].piece.id != "0" and grid[self.index.r][self.index.c + i].piece.player == self.player):   #if owned piece is in a way
                         return False
-                    elif (grid[self.index.r][self.index.c + i].piece.id != 0 and grid[self.index.r][self.index.c + i].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
+                    elif (grid[self.index.r][self.index.c + i].piece.id != "0" and grid[self.index.r][self.index.c + i].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
                         return False
-                    elif (grid[self.index.r][self.index.c + i].piece.id != 0 and grid[self.index.r][self.index.c + i].piece.player != self.player and i == distance):
+                    elif (grid[self.index.r][self.index.c + i].piece.id != "0" and grid[self.index.r][self.index.c + i].piece.player != self.player and i == distance):
                         return True
-                    elif (grid[self.index.r][self.index.c + i].piece.id == 0 and i == distance):
+                    elif (grid[self.index.r][self.index.c + i].piece.id == "0" and i == distance):
                         return True
 
             
             if (deltaX < 0):
                 for i in range(1, distance + 1):
-                    if (grid[self.index.r][self.index.c - i].piece.id != 0 and grid[self.index.r][self.index.c - i].piece.player == self.player):   #if owned piece is in a way
+                    if (grid[self.index.r][self.index.c - i].piece.id != "0" and grid[self.index.r][self.index.c - i].piece.player == self.player):   #if owned piece is in a way
                         return False
-                    elif (grid[self.index.r][self.index.c - i].piece.id != 0 and grid[self.index.r][self.index.c - i].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
+                    elif (grid[self.index.r][self.index.c - i].piece.id != "0" and grid[self.index.r][self.index.c - i].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
                         return False
-                    elif (grid[self.index.r][self.index.c - i].piece.id != 0 and grid[self.index.r][self.index.c - i].piece.player != self.player and i == distance):
+                    elif (grid[self.index.r][self.index.c - i].piece.id != "0" and grid[self.index.r][self.index.c - i].piece.player != self.player and i == distance):
                         return True
-                    elif (grid[self.index.r][self.index.c - i].piece.id == 0 and i == distance):
+                    elif (grid[self.index.r][self.index.c - i].piece.id == "0" and i == distance):
                         return True
 
 
             if (deltaY > 0):
                 for i in range(1, distance + 1):
-                    if (grid[self.index.r + i][self.index.c].piece.id != 0 and grid[self.index.r + i][self.index.c].piece.player == self.player):   #if owned piece is in a way
+                    if (grid[self.index.r + i][self.index.c].piece.id != "0" and grid[self.index.r + i][self.index.c].piece.player == self.player):   #if owned piece is in a way
                         return False
-                    elif (grid[self.index.r + i][self.index.c].piece.id != 0 and grid[self.index.r + i][self.index.c].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
+                    elif (grid[self.index.r + i][self.index.c].piece.id != "0" and grid[self.index.r + i][self.index.c].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
                         return False
-                    elif (grid[self.index.r + i][self.index.c].piece.id != 0 and grid[self.index.r + i][self.index.c].piece.player != self.player and i == distance):
+                    elif (grid[self.index.r + i][self.index.c].piece.id != "0" and grid[self.index.r + i][self.index.c].piece.player != self.player and i == distance):
                         return True
-                    elif (grid[self.index.r + i][self.index.c].piece.id == 0 and i == distance):
+                    elif (grid[self.index.r + i][self.index.c].piece.id == "0" and i == distance):
                         return True
 
             if (deltaY < 0):
                 for i in range(1, distance + 1):
-                    if (grid[self.index.r - i][self.index.c].piece.id != 0 and grid[self.index.r - i][self.index.c].piece.player == self.player):   #if owned piece is in a way
+                    if (grid[self.index.r - i][self.index.c].piece.id != "0" and grid[self.index.r - i][self.index.c].piece.player == self.player):   #if owned piece is in a way
                         return False
-                    elif (grid[self.index.r - i][self.index.c].piece.id != 0 and grid[self.index.r - i][self.index.c].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
+                    elif (grid[self.index.r - i][self.index.c].piece.id != "0" and grid[self.index.r - i][self.index.c].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
                         return False
-                    elif (grid[self.index.r - i][self.index.c].piece.id != 0 and grid[self.index.r - i][self.index.c].piece.player != self.player and i == distance):
+                    elif (grid[self.index.r - i][self.index.c].piece.id != "0" and grid[self.index.r - i][self.index.c].piece.player != self.player and i == distance):
                         return True
-                    elif (grid[self.index.r - i][self.index.c].piece.id == 0 and i == distance):
+                    elif (grid[self.index.r - i][self.index.c].piece.id == "0" and i == distance):
                         return True
 
 class Bishop(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "B" + player[0]   
-
-    def firstEnemyPiecesThreatened(self, grid):   #Returns The first Enemy Pieces Threatened by this piece
-
-        l = [] 
-        for i in range(8):
-            r = (self.index.r + i) % 8
-            c = (self.index.c + i) % 8
-            r2 = (self.index.c - i) % 8
-            if (grid[r][c].piece.id != 0 and grid[r][c].piece.id != self.id):   #/
-                l.append(grid[r][c].piece.id)
-            if (grid[r2][r].piece.id != 0 and grid[r2][c].piece.id != self.id):   #\
-                l.append(grid[r2][c].piece.id)
-        
-        return l
 
     def moveable(self, pointB, grid):
         if (grid[pointB.r][pointB.c].piece.player == self.player):
@@ -184,7 +184,8 @@ class Pawn(Piece):
         #Update index
         tempIndex = Cell(self.index.r, self.index.c)
         self.index = Cell(pointB.r,pointB.c)
-        grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), 0, "none", self.whitePerspective)
+        grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+        return True
 
     def moveable(self, pointB, grid):
         if (grid[pointB.r][pointB.c].piece.player == self.player):
@@ -205,7 +206,7 @@ class Pawn(Piece):
                 grid[self.index.r][self.index.c + deltaX].piece.player.die()    #Shouldn't kill a piece in this part of the code, but w.e lol
                 return True
 
-            if (grid[pointB.r][pointB.c].piece.id == 0):
+            if (grid[pointB.r][pointB.c].piece.id == "0"):
                 print("Can't move there. ", end = '')
                 return False
             elif (grid[pointB.r][pointB.c].piece.player != self.player):
@@ -214,7 +215,7 @@ class Pawn(Piece):
                 print("Can't move there. ", end = '')
                 return False
 
-        if (grid[pointB.r][pointB.c].piece.id != 0):    #Not 45 degree diagonal with obstruction on destiny 
+        if (grid[pointB.r][pointB.c].piece.id != "0"):    #Not 45 degree diagonal with obstruction on destiny 
             print("Obstructed. Can't move there. ", end = '')
             return False
 
@@ -234,7 +235,7 @@ class Pawn(Piece):
                 return False
 
         distance = abs(deltaY)
-        if (distance == 2 and grid[pointB.r + deltaY][pointB.c].piece.id == 0):  #If doublePush, and y+1 & y+2 are empty.
+        if (distance == 2 and grid[pointB.r + deltaY][pointB.c].piece.id == "0"):  #If doublePush, and y+1 & y+2 are empty.
             if (not self.doublePushAvailable):
                 print("Can't do that. ", end = '')
                 return False
@@ -242,7 +243,7 @@ class Pawn(Piece):
                 self.doublePushAvailable = False
                 self.enPassanteable = True
                 return True
-        elif (distance == 1 and grid[pointB.r][pointB.c].piece.id != 0):    #If travel distance == 1 && with obstruction
+        elif (distance == 1 and grid[pointB.r][pointB.c].piece.id != "0"):    #If travel distance == 1 && with obstruction
             print("Obstructed. Can't move there.", end = '')
             return False
         

@@ -8,21 +8,6 @@ class Piece:
         self.whitePerspective = whitePerspectiveBool
 
     def move(self, pointB, grid):
-
-        if (self.id[0] == "k"):
-            ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
-            if not ghost.amIUnderAttackedIn(grid):
-                #Move
-                grid[pointB.r][pointB.c].piece =  self
-                grid[pointB.r][pointB.c].piece.die()
-                #Update index
-                tempIndex = Cell(self.index.r, self.index.c)
-                self.index = Cell(pointB.r,pointB.c)
-                grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
-                return True
-            else:
-                return False
-        
         #Move
         grid[pointB.r][pointB.c].piece =  self
         grid[pointB.r][pointB.c].piece.die()
@@ -103,7 +88,7 @@ class Piece:
                 elif cState == "0":
                     pass
 
-                if (grid[r][c].piece.id != 0 and grid[r][c].piece.player != self.player):
+                if (grid[r][c].piece.id != "0" and grid[r][c].piece.player != self.player):
                     return grid[r][c].piece
                 elif (grid[r][c].piece.player == self.player):
                     trigger = False
