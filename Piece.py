@@ -18,7 +18,7 @@ class Piece:
         return True
 
     def amIUnderAttackedIn(self, grid):
-        l = self.threatsRadar(grid)
+        l = self.radar("threats", grid)
 
         for i in range (len(l)):
             if (l[i].id)[0] == "0": #Empty PlaceHolder
@@ -58,8 +58,7 @@ class Piece:
                 elif l[i].index.r == self.index.r or l[i].index.c == self.index.c:   #Rook
                     return True
     
-
-    def threatsRadar(self, grid): #Returns a list of the first enemies encountered in the vulnerability line of a piece.
+    def radar(self, strType, grid): #Returns a list of the first enemies encountered in the vulnerability line of a piece.
         l = []
 
         #Distances from the 4 edges of the board.
@@ -68,7 +67,7 @@ class Piece:
         squaresToTheRight = 7 - self.index.c
         squaresToTheLeft =  7 - squaresToTheRight
 
-        def linealChecks(rState, cState, distance):    #rBool -> + | cBool -> +
+        def linealChecks(rState, cState, distance, strType):    #rBool -> + | cBool -> +
             trigger = True
             i = 1
             while (trigger and i <= distance):
@@ -87,11 +86,18 @@ class Piece:
                     c = self.index.c - i
                 elif cState == "0":
                     pass
+                
+                if strType == "threats":
+                    if (grid[r][c].piece.id != "0" and grid[r][c].piece.player != self.player):
+                        return grid[r][c].piece
+                    elif (grid[r][c].piece.player == self.player):
+                        trigger = False
+                elif strType == "allies":
+                    if (grid[r][c].piece.id != "0" and grid[r][c].piece.player == self.player):
+                        return grid[r][c].piece
+                    elif (grid[r][c].piece.player != self.player):
+                        trigger = False
 
-                if (grid[r][c].piece.id != "0" and grid[r][c].piece.player != self.player):
-                    return grid[r][c].piece
-                elif (grid[r][c].piece.player == self.player):
-                    trigger = False
             return Empty(Cell(-1,-1), "0", "none", True)  #PlaceHolder Piece
         def HorsePositonsCheck(topDiff,sideDiff):
             r = self.index.r + topDiff
@@ -112,22 +118,99 @@ class Piece:
         l.append(linealChecks("-","0",squaresToTheTop)) #0,+ #^
         l.append(linealChecks("+","0",squaresToTheBottom)) #0,+ #v
 
-        #Horse Positions Checks:
-        #Top T
-        l.append(HorsePositonsCheck(2,1))
-        l.append(HorsePositonsCheck(2,-1))
-        #Lower T
-        l.append(HorsePositonsCheck(-2,1))
-        l.append(HorsePositonsCheck(-2,-1))
-        #Right T
-        l.append(HorsePositonsCheck(-1,2))
-        l.append(HorsePositonsCheck(1,2))
-        #Left T
-        l.append(HorsePositonsCheck(-1,-2))
-        l.append(HorsePositonsCheck(1,-2))
+        if (strType == "threats"):
+            #Horse Positions Checks:
+            #Top T
+            l.append(HorsePositonsCheck(2,1))
+            l.append(HorsePositonsCheck(2,-1))
+            #Lower T
+            l.append(HorsePositonsCheck(-2,1))
+            l.append(HorsePositonsCheck(-2,-1))
+            #Right T
+            l.append(HorsePositonsCheck(-1,2))
+            l.append(HorsePositonsCheck(1,2))
+            #Left T
+            l.append(HorsePositonsCheck(-1,-2))
+            l.append(HorsePositonsCheck(1,-2))
 
         return l
         
+    def shootRay(self, direction, grid):    #Shoot a ray in a direction and return an ordered list of pieces encountered
+        l = []
+
+        #calculate distance from piece to two edges:
+        distanceC = 0
+        distanceR = 0
+        if direction.c > 0:
+            distanceC = 7 - self.index.c
+        else:
+            distanceC = abs(0 - self.index.c)
+        
+        if direction.r > 0:
+            distanceR = 7 - self.index.r
+        else:
+            distanceC = abs(0 - self.index.r)
+
+        distance = max(distanceC, distanceR)
+
+        for i in range (distance):
+            l.append(grid[self.index.r + direction.r * i][self.index.c + direction.c * i].piece)
+
+        return l
+
+    def amIPinnedTo(self, pointB, grid):    #Checks if a piece is pinned to move to pointB
+        
+        #Checar si
+        searchKingList = self.radar("allies", grid)
+        kingFound = False
+        kingPiece = Empty(Cell(-1,-1), "0", "none", True)
+
+        for var in searchKingList:
+            if var.player == self.player and var.id[0] == "k":
+                kingPiece = var
+                kingFound = True
+
+        if not kingFound:
+            return False
+
+        #Direction that King is facing our piece.
+        deltaX = kingPiece.index.c - self.index.c
+        deltaY = kingPiece.index.r - self.index.r
+        direction = directionalVector(deltaY, deltaX)
+
+        #Shoot an ray to detect pieces in such direction
+        rayList = kingPiece.shootRay(direction, grid)
+        piecesList = []
+        for var in rayList:     #List clean up
+            if var.id[0] != "0":
+                piecesList.append(var)
+        
+        #Make sure that the list returned from the ray has at least 2 elements and the 2nd element MUST be an enemy piece.
+        if len(piecesList) < 2:
+            return False
+        if piecesList[1].player == self.player:
+            return False
+
+        #Shoot an enemy ray & and return False if the first piece encountered is not self
+        enemyRayList = piecesList[1].shootRay(direction.reverse(), grid)
+        enemyPiecesList = []
+        for var in enemyRayList:     #List clean up
+            if var.id[0] != "0":
+                enemyPiecesList.append(var)
+        if len(enemyPiecesList) < 2:
+            return False
+        if not (enemyPiecesList[0] == self and enemyPiecesList[1] == kingPiece):
+            return False
+
+        #Movement checks:
+        #pointB MUST be the same as enemyPiece.index
+        if (piecesList[1])
+        
+
+        
+
+        
+
 
     def die(self):
         pass
@@ -138,13 +221,3 @@ class Empty(Piece):
     def moveable(self, pointB, grid):
         print("There is nothing to move!")
         return False
-
-#Utilidades
-def change(a,b):
-    return b - a
-
-def min(a,b):
-    if a >= b:
-        return a
-    else:
-        return b
