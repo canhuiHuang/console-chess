@@ -4,6 +4,7 @@ class King(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "K" + player[0]
+        self.castleable = True
 
     def moveable(self, pointB, grid):
         deltaY = pointB.r - self.index.r
@@ -13,27 +14,57 @@ class King(Piece):
             if (grid[pointB.r][pointB.c].piece.id == self.id):
                 print("Obstructed.")
                 return False
-            else:   #Add more code later
+            elif grid[pointB.r][pointB.c].piece.id != self.id and grid[pointB.r][pointB.c].piece.isProtected(grid):
+                print("Piece is protected.")
+                return False
+            else:   
                 return True
-
-    def move(self, pointB, grid):
-        ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
-        if not ghost.amIUnderAttackedIn(grid):
-            #Move
-            grid[pointB.r][pointB.c].piece =  self
-            grid[pointB.r][pointB.c].piece.die()
-            #Update index
-            tempIndex = Cell(self.index.r, self.index.c)
-            self.index = Cell(pointB.r,pointB.c)
-            grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+        elif (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:
+            deltaX = self.index.c - pointB.c
+            direction = directionalVector(0, deltaX)
+            squaresBetweenKingNRook = self.shootRay(direction, grid)
+            for i in range(len(squaresBetweenKingNRook)):
+                if grid[self.index.r][self.index.c + i * direction.c].piece.id[0] not in ["0", "r", "k"] or grid[self.index.r][self.index.c + i * direction.c].piece.isUnderAttacked(grid):
+                    print("Can't castle. ")
+                    return False
             return True
         else:
             return False
+            
+
+    def move(self, pointB, grid):
+        #Castle
+        if (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable):
+            #Castling
+            deltaX = self.index.c - pointB.c
+            direction = directionalVector(0, deltaX)
+
+            grid[self.index.r][self.index.c + direction.c].piece = grid[pointB.r][pointB.c].piece
+            grid[self.index.r][self.index.c + direction.c].piece.index = Cell(self.index.r, self.index.c + direction.c)
+            grid[pointB.r][pointB.c + direction.c * -1].piece = self
+            self.index = Cell(pointB.r,pointB.c + direction.c * -1)
+            return True
+        else:
+            ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
+            if not ghost.isUnderAttacked(grid):
+                #Move
+                grid[pointB.r][pointB.c].piece =  self
+                grid[pointB.r][pointB.c].piece.die()
+                #Update index
+                tempIndex = Cell(self.index.r, self.index.c)
+                self.index = Cell(pointB.r,pointB.c)
+                grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+
+                self.castleable = False
+                return True
+            else:
+                return False
 
 class Rook(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "R" + player[0]
+        self.castleable = True
 
     def moveable(self, pointB, grid):
         if (grid[pointB.r][pointB.c].piece.player == self.player):
@@ -90,6 +121,18 @@ class Rook(Piece):
                         return True
                     elif (grid[self.index.r - i][self.index.c].piece.id == "0" and i == distance):
                         return True
+
+    def move(self, pointB, grid):
+        #Move
+        grid[pointB.r][pointB.c].piece =  self
+        grid[pointB.r][pointB.c].piece.die()
+        #Update index
+        tempIndex = Cell(self.index.r, self.index.c)
+        self.index = Cell(pointB.r,pointB.c)
+        grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+
+        self.castleable = False
+        return True
 
 class Bishop(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
