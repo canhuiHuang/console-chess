@@ -15,12 +15,12 @@ class directionalVector:
         self.validLine = True
 
         if (abs(r) == abs(c)):
-            self.r = r/abs(r)
-            self.c = c/abs(c)
+            self.r = int(r/abs(r))
+            self.c = int(c/abs(c))
         elif r == 0 and c != 0:
-            self.c = 1
+            self.c = int(c/abs(c))
         elif c == 0 and r != 0:
-            self.r = 1
+            self.r = int(r/abs(r))
         else:
             self.validLine = False
 

@@ -62,26 +62,26 @@ class Piece:
         l = self.radar("threats", grid)
 
         for i in range (len(l)):
-            if (l[i].id)[0] == "0": #Empty PlaceHolder
+            if l[i].id[0] == "0": #Empty PlaceHolder
                 pass
 
-            elif (l[i].id)[0] == "r":   #Rook
+            elif l[i].id[0] == "r":   #Rook
                 if l[i].index.r == self.index.r or l[i].index.c == self.index.c:
                     return True
 
-            elif (l[i].id)[0] == "b":   #Bishop
+            elif l[i].id[0] == "b":   #Bishop
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if abs(deltaX) == abs(deltaY):
                     return True
             
-            elif (l[i].id)[0] == "n":   #Knight
+            elif l[i].id[0] == "n":   #Knight
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if (abs(deltaY) == 2 and abs(deltaX) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 2):
                     return True
     
-            elif (l[i].id)[0] == "p":  #Pawn
+            elif l[i].id[0] == "p":  #Pawn
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if (self.whitePerspective and self.player == "white") or (not self.whitePerspective and self.player == "black"):
@@ -91,7 +91,7 @@ class Piece:
                     if abs(deltaX) == 1 and deltaY == 1:
                         return True
 
-            elif (l[i].id)[0] == "q": #Queen
+            elif l[i].id[0] == "q": #Queen
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if abs(deltaX) == abs(deltaY):  #Bishop
@@ -107,6 +107,11 @@ class Piece:
         squaresToTheTop = 7 - squaresToTheBottom
         squaresToTheRight = 7 - self.index.c
         squaresToTheLeft =  7 - squaresToTheRight
+
+        print(squaresToTheBottom)
+        print(squaresToTheTop)
+        print(squaresToTheRight)
+        print(squaresToTheLeft)
 
         def linealChecks(rState, cState, distance, strType):    #rBool -> + | cBool -> +
             trigger = True
@@ -129,12 +134,12 @@ class Piece:
                     pass
                 
                 if strType == "threats":
-                    if (grid[r][c].piece.id != "0" and grid[r][c].piece.player != self.player):
+                    if (grid[r][c].piece.id[0] != "0" and grid[r][c].piece.player != self.player):
                         return grid[r][c].piece
                     elif (grid[r][c].piece.player == self.player):
                         trigger = False
                 elif strType == "allies" or strType == "allies+":
-                    if (grid[r][c].piece.id != "0" and grid[r][c].piece.player == self.player):
+                    if (grid[r][c].piece.id[0] != "0" and grid[r][c].piece.player == self.player):
                         return grid[r][c].piece
                     elif (grid[r][c].piece.player != self.player):
                         trigger = False
@@ -145,7 +150,7 @@ class Piece:
         def HorsePositonsCheck(topDiff,sideDiff, strType):
             r = self.index.r + topDiff
             c = self.index.c + sideDiff
-            if not (c > 7 or r >7) and grid[r][c].piece.id != 0:
+            if not (c > 7 or r >7) and grid[r][c].piece.id[0] != 0:
                 if (strType == "allies+") and (grid[r][c].piece.player == self.player):
                     return grid[r][c].piece
                 elif strType == "threats" and grid[r][c].piece.player != self.player:
@@ -154,15 +159,24 @@ class Piece:
                 return Empty(Cell(-1,-1), "0", "none", True)  #PlaceHolder Piece
 
         #Lineal Checks: / / \ \   -> <- ^ v
-        l.append(linealChecks("+","+",squaresToTheRight,strType)) #+,+ #/
-        l.append(linealChecks("-","-",squaresToTheLeft,strType)) #-,- #/
-        l.append(linealChecks("-","+",squaresToTheRight,strType)) #-,+ #\
-        l.append(linealChecks("+","-",squaresToTheLeft,strType)) #+,- #\
+        print("1")
+        l.append(linealChecks("-","+",squaresToTheRight,strType)) #-,+ #/
+        print("1")
+        l.append(linealChecks("+","-",squaresToTheLeft,strType)) #+,- #/
+        print("2")
+        l.append(linealChecks("+","+",squaresToTheRight,strType)) #-,+ #\
+        print("3")
+        l.append(linealChecks("-","-",squaresToTheLeft,strType)) #+,- #\
+        print("4")
 
         l.append(linealChecks("0","+",squaresToTheRight,strType)) #0,+ #->
+        print("5")
         l.append(linealChecks("0","-",squaresToTheLeft,strType)) #0,- #<-
+        print("6")
         l.append(linealChecks("-","0",squaresToTheTop,strType)) #0,+ #^
+        print("7")
         l.append(linealChecks("+","0",squaresToTheBottom,strType)) #0,+ #v
+        print("8")
 
         if (strType == "threats" or strType == "allies+"):
             #Horse Positions Checks:
@@ -189,18 +203,23 @@ class Piece:
         distanceR = 0
         if direction.c > 0:
             distanceC = 7 - self.index.c
-        else:
+        elif direction.c < 0:
             distanceC = abs(0 - self.index.c)
+        else:
+            distanceC = 0
         
         if direction.r > 0:
             distanceR = 7 - self.index.r
+        elif direction.r < 0:
+            distanceR = abs(0 - self.index.r)
         else:
-            distanceC = abs(0 - self.index.r)
+            distanceR = 0
 
         distance = max(distanceC, distanceR)
-
+        print(distance)
         for i in range (distance):
-            l.append(grid[self.index.r + direction.r * i][self.index.c + direction.c * i].piece)
+            l.append(grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece)
+            print(grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece.id)
 
         return l
 

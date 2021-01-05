@@ -12,20 +12,20 @@ class King(Piece):
 
         if (abs(deltaY) == 1 and abs(deltaY) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 0) or (abs(deltaY) == 0 and abs(deltaX) == 1):
             if (grid[pointB.r][pointB.c].piece.id == self.id):
-                print("Obstructed.")
+                print("Obstructed. ", end = '')
                 return False
             elif grid[pointB.r][pointB.c].piece.id != self.id and grid[pointB.r][pointB.c].piece.isProtected(grid):
-                print("Piece is protected.")
+                print("Piece is protected. ", end = '')
                 return False
             else:   
                 return True
         elif (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:
-            deltaX = self.index.c - pointB.c
+            deltaX = pointB.c - self.index.c
             direction = directionalVector(0, deltaX)
             squaresBetweenKingNRook = self.shootRay(direction, grid)
             for i in range(len(squaresBetweenKingNRook)):
                 if grid[self.index.r][self.index.c + i * direction.c].piece.id[0] not in ["0", "r", "k"] or grid[self.index.r][self.index.c + i * direction.c].piece.isUnderAttacked(grid):
-                    print("Can't castle. ")
+                    print("Can't castle. ", end = '')
                     return False
             return True
         else:
@@ -238,6 +238,10 @@ class Pawn(Piece):
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
 
+        if abs(deltaY > 2):
+            print("Can't move there. ", end = '')
+            return False
+
         if abs(deltaY) == 0:    #No vertical translation
             print("Can't move there. ", end = '')
             return False
@@ -278,7 +282,7 @@ class Pawn(Piece):
                 return False
 
         distance = abs(deltaY)
-        if (distance == 2 and grid[pointB.r + deltaY][pointB.c].piece.id == "0"):  #If doublePush, and y+1 & y+2 are empty.
+        if (distance == 2 and abs(deltaX) == 0 and grid[pointB.r + deltaY][pointB.c].piece.id == "0"):  #If doublePush, and y+1 & y+2 are empty.
             if (not self.doublePushAvailable):
                 print("Can't do that. ", end = '')
                 return False
