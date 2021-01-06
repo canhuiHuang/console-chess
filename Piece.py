@@ -235,8 +235,8 @@ class Piece:
             return False
 
         #Direction that King is facing our piece.
-        deltaX = kingPiece.index.c - self.index.c
-        deltaY = kingPiece.index.r - self.index.r
+        deltaX = self.index.c - kingPiece.index.c
+        deltaY = self.index.r - kingPiece.index.r
         direction = directionalVector(deltaY, deltaX)
 
         #Shoot an ray to detect pieces in such direction
