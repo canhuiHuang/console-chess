@@ -3,6 +3,12 @@ class Cell:  #Vector2 in Row,Column format
         self.r = r
         self.c = c
 
+    def __eq__(self,cell2):
+        return self.r == cell2.r and self.c == cell2.c
+
+    def __ne__(self, cell2):
+        return self.r != cell2.r or self.c != cell2.c
+
 class threatenedPiece:      #Vector2 in Object,ID format
     def __init__(self, piece, order):
         self.piece = piece

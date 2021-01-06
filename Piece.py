@@ -8,14 +8,17 @@ class Piece:
         self.whitePerspective = whitePerspectiveBool
 
     def move(self, pointB, grid):
-        #Move
-        grid[pointB.r][pointB.c].piece =  self
-        grid[pointB.r][pointB.c].piece.die()
-        #Update index
-        tempIndex = Cell(self.index.r, self.index.c)
-        self.index = Cell(pointB.r,pointB.c)
-        grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
-        return True
+        if not self.amIPinnedTo(pointB, grid):
+            #Move
+            grid[pointB.r][pointB.c].piece = self
+            grid[pointB.r][pointB.c].piece.die()
+            #Update index
+            tempIndex = Cell(self.index.r, self.index.c)
+            self.index = Cell(pointB.r,pointB.c)
+            grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+            return True
+        else:
+            return False
 
     def isProtected(self, grid):
         l = self.radar("allies+", grid)
@@ -57,6 +60,8 @@ class Piece:
                     return True
                 elif l[i].index.r == self.index.r or l[i].index.c == self.index.c:   #Rook
                     return True
+
+        return False
     
     def isUnderAttacked(self, grid):
         l = self.radar("threats", grid)
@@ -98,6 +103,8 @@ class Piece:
                     return True
                 elif l[i].index.r == self.index.r or l[i].index.c == self.index.c:   #Rook
                     return True
+
+        return False
     
     def radar(self, strType, grid): #Returns a list of the first enemies encountered in the vulnerability line of a piece.
         l = []
@@ -108,28 +115,23 @@ class Piece:
         squaresToTheRight = 7 - self.index.c
         squaresToTheLeft =  7 - squaresToTheRight
 
-        print(squaresToTheBottom)
-        print(squaresToTheTop)
-        print(squaresToTheRight)
-        print(squaresToTheLeft)
-
         def linealChecks(rState, cState, distance, strType):    #rBool -> + | cBool -> +
             trigger = True
             i = 1
             while (trigger and i <= distance):
-                r = 0
-                c = 0
+                r = self.index.r
+                c = self.index.c
                 if rState == "+":
-                    r = self.index.r + i
+                    r += i
                 elif rState == "-":
-                    r = self.index.r - i
+                    r -= i
                 elif rState == "0":
                     pass
                 
                 if cState == "+":
-                    c = self.index.c + i
+                    c += i
                 elif cState == "-":
-                    c = self.index.c - i
+                    c -= i
                 elif cState == "0":
                     pass
                 
@@ -150,33 +152,30 @@ class Piece:
         def HorsePositonsCheck(topDiff,sideDiff, strType):
             r = self.index.r + topDiff
             c = self.index.c + sideDiff
-            if not (c > 7 or r >7) and grid[r][c].piece.id[0] != 0:
-                if (strType == "allies+") and (grid[r][c].piece.player == self.player):
-                    return grid[r][c].piece
-                elif strType == "threats" and grid[r][c].piece.player != self.player:
-                    return grid[r][c].piece
+            if not (c > 7 or r >7 or c < 0 or r < 0) and grid[r][c].piece.id[0] != 0:
+                if strType == "allies+":
+                    if grid[r][c].piece.player == self.player:
+                        return grid[r][c].piece
+                    elif grid[r][c].piece.player != self.player:
+                        return Empty(Cell(-1,-1), "0", "none", True)
+                elif strType == "threats":
+                    if grid[r][c].piece.player != self.player:
+                        return grid[r][c].piece
+                    elif grid[r][c].piece.player == self.player:
+                        return Empty(Cell(-1,-1), "0", "none", True)
             else:
                 return Empty(Cell(-1,-1), "0", "none", True)  #PlaceHolder Piece
 
         #Lineal Checks: / / \ \   -> <- ^ v
-        print("1")
-        l.append(linealChecks("-","+",squaresToTheRight,strType)) #-,+ #/
-        print("1")
-        l.append(linealChecks("+","-",squaresToTheLeft,strType)) #+,- #/
-        print("2")
-        l.append(linealChecks("+","+",squaresToTheRight,strType)) #-,+ #\
-        print("3")
-        l.append(linealChecks("-","-",squaresToTheLeft,strType)) #+,- #\
-        print("4")
+        l.append(linealChecks("-","+",min(squaresToTheRight,squaresToTheTop),strType)) #-,+ #/
+        l.append(linealChecks("+","-",min(squaresToTheLeft,squaresToTheBottom),strType)) #+,- #/
+        l.append(linealChecks("+","+",min(squaresToTheRight,squaresToTheBottom),strType)) #-,+ #\
+        l.append(linealChecks("-","-",min(squaresToTheLeft,squaresToTheTop),strType)) #+,- #\
 
         l.append(linealChecks("0","+",squaresToTheRight,strType)) #0,+ #->
-        print("5")
         l.append(linealChecks("0","-",squaresToTheLeft,strType)) #0,- #<-
-        print("6")
         l.append(linealChecks("-","0",squaresToTheTop,strType)) #0,+ #^
-        print("7")
         l.append(linealChecks("+","0",squaresToTheBottom,strType)) #0,+ #v
-        print("8")
 
         if (strType == "threats" or strType == "allies+"):
             #Horse Positions Checks:
@@ -216,10 +215,8 @@ class Piece:
             distanceR = 0
 
         distance = max(distanceC, distanceR)
-        print(distance)
         for i in range (distance):
             l.append(grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece)
-            print(grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece.id)
 
         return l
 
@@ -254,7 +251,6 @@ class Piece:
             return False
         if piecesList[1].player == self.player:
             return False
-
 
         #Enemy MUST be in the same line. When Queen is detected by any ray, Queen will be in the same line.
         if (piecesList[1].id[0] == "b") and (abs(direction.r) != abs(direction)):

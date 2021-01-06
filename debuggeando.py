@@ -77,6 +77,12 @@ turn = 1
 # for var in lista:
 #     print(var.id)
 
-lista = grid[7][0].piece.radar("threats", grid)
-for var in lista:
-    print(var.id)
+# lista = grid[7][0].piece.radar("threats", grid)
+# print("tamano: ",len(lista))
+# for var in lista:
+#     print(var.id)
+
+if grid[7][0].piece.isUnderAttacked(grid):
+    print("yes")
+else:
+    print("no")

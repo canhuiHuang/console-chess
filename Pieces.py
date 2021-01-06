@@ -22,11 +22,17 @@ class King(Piece):
         elif (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:
             deltaX = pointB.c - self.index.c
             direction = directionalVector(0, deltaX)
-            squaresBetweenKingNRook = self.shootRay(direction, grid)
-            for i in range(len(squaresBetweenKingNRook)):
-                if grid[self.index.r][self.index.c + i * direction.c].piece.id[0] not in ["0", "r", "k"] or grid[self.index.r][self.index.c + i * direction.c].piece.isUnderAttacked(grid):
+
+            if self.isUnderAttacked(grid):
+                return False   
+            for i in range(1,3):
+                ghost = Empty(Cell(self.index.r, self.index.c + i * direction.c),"ghost", self.player, self.whitePerspective)
+                if grid[self.index.r][self.index.c + i * direction.c].piece.id[0] != "0" or ghost.isUnderAttacked(grid):
                     print("Can't castle. ", end = '')
                     return False
+            if grid[pointB.r][pointB.c].piece.isUnderAttacked(grid):
+                return False
+
             return True
         else:
             return False
@@ -36,13 +42,22 @@ class King(Piece):
         #Castle
         if (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable):
             #Castling
-            deltaX = self.index.c - pointB.c
+            deltaX = pointB.c - self.index.c
             direction = directionalVector(0, deltaX)
 
+            kingTempIndex = Cell(self.index.r, self.index.c)
+            RookTempIndex = Cell(pointB.r, pointB.c)
             grid[self.index.r][self.index.c + direction.c].piece = grid[pointB.r][pointB.c].piece
             grid[self.index.r][self.index.c + direction.c].piece.index = Cell(self.index.r, self.index.c + direction.c)
             grid[pointB.r][pointB.c + direction.c * -1].piece = self
             self.index = Cell(pointB.r,pointB.c + direction.c * -1)
+
+            #Delete
+            grid[kingTempIndex.r][kingTempIndex.c].piece = Empty(Cell(kingTempIndex.r, kingTempIndex.c), "0", "none", self.whitePerspective)
+            grid[RookTempIndex.r][RookTempIndex.c].piece = Empty(Cell(RookTempIndex.r, RookTempIndex.c), "0", "none", self.whitePerspective)
+
+            self.castleable = False
+
             return True
         else:
             ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
@@ -72,55 +87,18 @@ class Rook(Piece):
 
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
+        direction = directionalVector(deltaY,deltaX)
 
         if (deltaY == 0 and deltaX != 0) or (deltaY != 0 and deltaX == 0):  #There is only one 0 in {rb - ra, cb - ca}
             distance = abs(deltaY + deltaX)
-
-            if (deltaX > 0):
-                for i in range(1, distance + 1):
-                    if (grid[self.index.r][self.index.c + i].piece.id != "0" and grid[self.index.r][self.index.c + i].piece.player == self.player):   #if owned piece is in a way
-                        return False
-                    elif (grid[self.index.r][self.index.c + i].piece.id != "0" and grid[self.index.r][self.index.c + i].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
-                        return False
-                    elif (grid[self.index.r][self.index.c + i].piece.id != "0" and grid[self.index.r][self.index.c + i].piece.player != self.player and i == distance):
-                        return True
-                    elif (grid[self.index.r][self.index.c + i].piece.id == "0" and i == distance):
-                        return True
-
-            
-            if (deltaX < 0):
-                for i in range(1, distance + 1):
-                    if (grid[self.index.r][self.index.c - i].piece.id != "0" and grid[self.index.r][self.index.c - i].piece.player == self.player):   #if owned piece is in a way
-                        return False
-                    elif (grid[self.index.r][self.index.c - i].piece.id != "0" and grid[self.index.r][self.index.c - i].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
-                        return False
-                    elif (grid[self.index.r][self.index.c - i].piece.id != "0" and grid[self.index.r][self.index.c - i].piece.player != self.player and i == distance):
-                        return True
-                    elif (grid[self.index.r][self.index.c - i].piece.id == "0" and i == distance):
-                        return True
-
-
-            if (deltaY > 0):
-                for i in range(1, distance + 1):
-                    if (grid[self.index.r + i][self.index.c].piece.id != "0" and grid[self.index.r + i][self.index.c].piece.player == self.player):   #if owned piece is in a way
-                        return False
-                    elif (grid[self.index.r + i][self.index.c].piece.id != "0" and grid[self.index.r + i][self.index.c].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
-                        return False
-                    elif (grid[self.index.r + i][self.index.c].piece.id != "0" and grid[self.index.r + i][self.index.c].piece.player != self.player and i == distance):
-                        return True
-                    elif (grid[self.index.r + i][self.index.c].piece.id == "0" and i == distance):
-                        return True
-
-            if (deltaY < 0):
-                for i in range(1, distance + 1):
-                    if (grid[self.index.r - i][self.index.c].piece.id != "0" and grid[self.index.r - i][self.index.c].piece.player == self.player):   #if owned piece is in a way
-                        return False
-                    elif (grid[self.index.r - i][self.index.c].piece.id != "0" and grid[self.index.r - i][self.index.c].piece.player != self.player and i != distance): #If opponent piece on the way and is not pointB
-                        return False
-                    elif (grid[self.index.r - i][self.index.c].piece.id != "0" and grid[self.index.r - i][self.index.c].piece.player != self.player and i == distance):
-                        return True
-                    elif (grid[self.index.r - i][self.index.c].piece.id == "0" and i == distance):
-                        return True
+            for i in range(1, distance + 1):
+                curPiece = grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)].piece
+                if curPiece.id[0] != "0" and curPiece.index != pointB:
+                    print("Obstructed. ", end = '')
+                    return False
+        else:
+            return False
+        return True
 
     def move(self, pointB, grid):
         #Move
@@ -146,44 +124,17 @@ class Bishop(Piece):
         #Deltas from A to B:
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
+        direction = directionalVector(deltaY, deltaX)
 
         if (abs(deltaX) != abs(deltaY)):   #Not valid diagonal? slope must be 1/2.
              print ("Can't move there. ", end = '')
-             return False 
+             return False
 
-        nonHypotenuseDistance = abs(deltaX) #Catetos
-
-        if (deltaY > 0 and deltaX > 0):     #\ down
-            for i in range (1, nonHypotenuseDistance + 1):
-                if (grid[self.index.r + i][self.index.c + i].piece.graphic != ' ' and grid[self.index.r + i][self.index.c + i].piece.id == grid[pointB.r][pointB.c].piece.id):
-                    return True
-                elif (grid[self.index.r + i][self.index.c + i].piece.graphic != ' '):
-                    print ("Obstructed - Can't move there. ", end = '')
-                    return False    #Obstructed.
-
-        elif (deltaY < 0 and deltaX < 0):   #\ up
-            for i in range (1, nonHypotenuseDistance + 1):
-                if (grid[self.index.r - i][self.index.c - i].piece.graphic != ' ' and grid[self.index.r - i][self.index.c - i].piece.id == grid[pointB.r][pointB.c].piece.id):
-                    return True
-                elif (grid[self.index.r - i][self.index.c - i].piece.graphic != ' '):
-                    print ("Obstructed - Can't move there. ", end = '')
-                    return False    #Obstructed.
-        
-        elif (deltaY < 0 and deltaX > 0):   #/ up
-            for i in range (1, nonHypotenuseDistance + 1):
-                if (grid[self.index.r - i][self.index.c + i].piece.graphic != ' ' and grid[self.index.r - i][self.index.c + i].piece.id == grid[pointB.r][pointB.c].piece.id):
-                    return True
-                elif (grid[self.index.r - i][self.index.c + i].piece.graphic != ' '):
-                    print ("Obstructed - Can't move there. ", end = '')
-                    return False    #Obstructed.
-        
-        elif (deltaY > 0 and deltaX < 0):   #/ down
-            for i in range (1, nonHypotenuseDistance + 1):
-                if (grid[self.index.r + i][self.index.c - i].piece.graphic != ' ' and grid[self.index.r + i][self.index.c - i].piece.id == grid[pointB.r][pointB.c].piece.id):
-                    return True
-                elif (grid[self.index.r + i][self.index.c - i].piece.graphic != ' '):
-                    print ("Obstructed - Can't move there. ", end = '')
-                    return False    #Obstructed.
+        for i in range(1, abs(deltaX) + 1):
+            curPiece = grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)].piece
+            if curPiece.id[0] != "0" and curPiece.index != pointB:
+                print("Obstructed. ", end = '')
+                return False
 
         return True
 
@@ -195,6 +146,9 @@ class Knight(Piece):
     def moveable(self, pointB, grid):
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
+
+        if (grid[pointB.r][pointB.c].piece.player == self.player):
+            return False    #Fuego Amigo xD 
 
         if (abs(deltaY) == 2 and abs(deltaX) == 1) or (abs(deltaY == 1) and abs(deltaX == 2)):  #Only if move is an L mov
             if (grid[pointB.r][pointB.c].piece.id == self.id):
@@ -209,13 +163,9 @@ class Pawn(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
         Piece.__init__(self, index, id, player, whitePerspectiveBool)
         self.graphic = "P" + player[0]
+        self.doublePushAvailable = True
+        self.enPassanteable = False
 
-    doublePushAvailable = True
-    enPassanteable = False
-
-    prevActiveThreatSquares = []
-    prevPassiveThreatSquares = []
-    
     def move(self, pointB, grid):
         #En passant Boolean
         if (self.enPassanteable):
@@ -228,6 +178,7 @@ class Pawn(Piece):
         tempIndex = Cell(self.index.r, self.index.c)
         self.index = Cell(pointB.r,pointB.c)
         grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+        self.doublePushAvailable = False
         return True
 
     def moveable(self, pointB, grid):
@@ -238,7 +189,7 @@ class Pawn(Piece):
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
 
-        if abs(deltaY > 2):
+        if abs(deltaY) > 2:
             print("Can't move there. ", end = '')
             return False
 
