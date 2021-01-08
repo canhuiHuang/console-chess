@@ -4,28 +4,6 @@ from Square import *
 from VectorX import *
 
 #Functions
-def legalMoveValidation(userInput, board):
-    legal = translate(pair2Coord(userInput[0] + userInput[1]),pair2Coord(userInput[3] + userInput[4]), board)
-    newInput = ""
-    if legal:
-        return userInput
-    while (not legal):
-        if (turn == 1):
-            newInput = input(whiteInputPrompt)
-        else:
-            newInput = input(blackInputPrompt)
-
-        newInput = isCmdValid(newInput)
-        while (newInput == "invalid"):
-            if (turn == 1):
-                newInput = input(whiteInputPrompt)
-            else:
-                newInput = input(blackInputPrompt)
-            newInput = isCmdValid(newInput)
-
-        legal = translate(pair2Coord(newInput[0] + newInput[1]),pair2Coord(newInput[3] + newInput[4]), board)
-    return newInput
-
 def inputValidation():
     userInput = "none"
     if (turn == 1):
@@ -42,41 +20,46 @@ def inputValidation():
         userInput = isCmdValid(userInput)
     return userInput
 
-#CheckOn
-def checkOn():
-    king = grid[whiteKingIndex.r][whiteKingIndex.c].piece
-    if turn == -1:
-        king = grid[blackKingIndex.r][blackKingIndex.c].piece
+def checkmate():
+    if turn == 1:
+        print("Checkmate. Black Wins!")
+    else:
+        print("Checkmate. White Wins!")
 
-    attackers = king.isUnderAttacked(grid)
+def checkOn(board):
+    king = board.grid[whiteKingIndex.r][whiteKingIndex.c].piece
+    if turn == -1:
+        king = board.grid[blackKingIndex.r][blackKingIndex.c].piece
+
+    attackers = king.isUnderAttacked(board.grid)
     if len(attackers) > 0:
         if len(attackers) == 1: #Single Attack
 
             attacker = attackers[0]
             #Can attacker be captured?
-            defenders = attacker.isUnderAttacked(grid)
+            defenders = attacker.isUnderAttacked(board.grid)
             for defender in defenders:
-                if not defender.amIPinnedTo(attacker.index, grid):
+                if not defender.amIPinnedTo(attacker.index, board.grid):
                     return 1
             
             #The reason amIPinned can be used is because the defender is attacking the Attacker, which means that it is LEGAL to move there,
             #So, the only thing else that needs to be checked is to see whether the defender is pinned or not.
 
             #Can the attack be blocked?
-            sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,grid)
+            sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,board.grid)
             ghostSqrs = sqrsBetweenAttackerNKing
             for sqr in ghostSqrs:
                 sqr.piece.player = attacker.player
-                possibleBlockers = sqr.isUnderAttacked(grid)
+                possibleBlockers = sqr.isUnderAttacked(board.grid)
                 for blocker in possibleBlockers:
-                    if not blocker.amIPinnedTo(sqr.index, grid):
+                    if not blocker.amIPinnedTo(sqr.index, board.grid):
                         return 1
 
             #Can King move?
             unitVector = DirectionalVector(1,1)
             for i in range(9):
                 sqr = king.index + unitVector
-                if king.moveable(sqr,grid):
+                if king.moveable(sqr,board.grid):
                     return 1
             
             return 2
@@ -86,7 +69,7 @@ def checkOn():
             unitVector = DirectionalVector(1,1)
             for i in range(9):
                 sqr = king.index + unitVector
-                if king.moveable(sqr,grid):
+                if king.moveable(sqr,board):
                     return 1
             return 2
     else:
@@ -174,17 +157,21 @@ def pair2Coord(pairString):        #Converts cmd to Coord in the grid.
 
     return Cell(r,c)
 
-def translate(pointA, pointB, grid):
-    if (turn == 1 and grid[pointA.r][pointA.c].piece.player == "white") or (turn == -1 and grid[pointA.r][pointA.c].piece.player == "black"):
-        if grid[pointA.r][pointA.c].piece.moveable(pointB, grid):
-            if grid[pointA.r][pointA.c].piece.move(pointB,grid):
+def untranslate(pointA, pointB, board, deadsQueue): #Can't untranslate castling
+    board.grid[pointA.r][pointA.c].piece = board.grid[pointB.r][pointB.c].piece
+    board.grid[pointB.r][pointB.c].piece = deadsQueue.pop(len(deadsQueue) - 1)
+
+def translate(pointA, pointB, board, deadsQueue):
+    if (turn == 1 and board.grid[pointA.r][pointA.c].piece.player == "white") or (turn == -1 and board.grid[pointA.r][pointA.c].piece.player == "black"):
+        if board.grid[pointA.r][pointA.c].piece.moveable(pointB, board.grid):
+            if board.grid[pointA.r][pointA.c].piece.move(pointB,board.grid):
                 return True
             else:
                 return False
         else:
             print("Can not perform the command. ")
             return False
-    elif (grid[pointA.r][pointA.c].piece.player == "none"):
+    elif (board.grid[pointA.r][pointA.c].piece.player == "none"):
         print("No piece selected to move. ")
         return False
     else:
@@ -196,7 +183,7 @@ turns = [1, -1]
 turn = random.choice(turns) #1 for white, #-1 for black
 blackKingIndex = Cell(7,4)
 whiteKingIndex = Cell(0,4)
-deadPiecesQueue = []
+deadPiecesQueue = [Empty(Cell(-1, -1), "0", "shouldNotBeInvoked", whitePerspective)]
 
 whitePerspective = True
 yLabel = ['1','2','3','4','5','6','7','8']
@@ -257,6 +244,7 @@ grid[7][6].piece = Knight(Cell(7,6), "n2" + player[0], player, whitePerspective)
 grid[7][7].piece = Rook(Cell(7,7), "r2" + player[0], player, whitePerspective)
 for i in range(8):
     grid[6][i].piece = Pawn(Cell(6,i), "p" + str(i + 1) + player[0], player, whitePerspective)
+board = Board(grid,"originalGrid", deadPiecesQueue)
 
 turn = 1
 #Show Board
@@ -264,27 +252,50 @@ showBoard()
 
 while (not gameOver):
     #CheckState
-    checkstate = checkOn()
+    checkstate = checkOn(grid)
 
     while checkstate == 1:
-        ghostgrid = grid
+        ghostBoard = board
         ghostDeadPiecesQueue = deadPiecesQueue
 
+        #Input & Legal Move validation
         playerInput = inputValidation()
-        playerInput = legalMoveValidation(playerInput, ghostgrid)
-        if translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), ghostgrid):
-            translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
- 
+        pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
+        piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
+        destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
+        while not piece.moveable(destinyCoord,board):
+            playerInput = inputValidation()
 
-    while checkstate == 0:
-        #Input Validation
-        normalInput = inputValidation()
+            pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
+            piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
+            destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
 
+        #Traslate on ghost board & check for checks xd
+        ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard,ghostDeadPiecesQueue)
+        checkOn(ghostBoard)
 
+        if checkstate == 0:
+            board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard,ghostDeadPiecesQueue)
 
-    #Legal Move Validation
+    if checkstate == 0:
+        #Input & Legal Move validation
+        playerInput = inputValidation()
+        pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
+        piece = board.grid[pieceCoord.r][pieceCoord.c].piece
+        destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
+        while not piece.moveable(destinyCoord,board):
+            playerInput = inputValidation()
 
-    #Next turn    
-    turn *= -1
+            pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
+            piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
+            destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
         
+        board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,board,deadPiecesQueue)
+    
+    elif checkstate == 2:
+        checkmate()
+        gameOver = True
+
+    #Next turn and show board   
+    turn *= -1
     showBoard()

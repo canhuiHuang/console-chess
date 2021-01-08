@@ -66,20 +66,16 @@ class King(Piece):
 
             return True
         else:
-            ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
-            if not ghost.isUnderAttacked(grid):
-                #Move
-                deadsQueue.append(grid[pointB.r][pointB.c].piece.die())
-                grid[pointB.r][pointB.c].piece = self
-                #Update index
-                tempIndex = Cell(self.index.r, self.index.c)
-                self.index = Cell(pointB.r,pointB.c)
-                grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+            #Move
+            deadsQueue.append(grid[pointB.r][pointB.c].piece.die())
+            grid[pointB.r][pointB.c].piece = self
+            #Update index
+            tempIndex = Cell(self.index.r, self.index.c)
+            self.index = Cell(pointB.r,pointB.c)
+            grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
 
-                self.castleable = False
-                return True
-            else:
-                return False
+            self.castleable = False
+            return True
 
 class Rook(Piece):
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool

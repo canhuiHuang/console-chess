@@ -9,3 +9,10 @@ class Square:
     def setPiece(self, newPiece):
         self.piece = newPiece
 
+class Board:
+    def __init__(self, grid, name, piece):
+        self.grid = grid
+        self.name = name
+        self.deadQueue = []
+        self.deadQueue.append(piece)
+
