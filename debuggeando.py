@@ -82,7 +82,23 @@ turn = 1
 # for var in lista:
 #     print(var.id)
 
-if grid[7][0].piece.isUnderAttacked(grid):
-    print("yes")
-else:
-    print("no")
+def f1():
+    return 2
+
+def f1():
+    return 4
+
+def f1():
+    return 6
+
+def test(a,b,c):
+    return a+b+c
+
+sofa = 1
+sifa = 2
+rera = 3
+
+test(sofa,sifa,rera)
+print(sofa,sifa,rera)
+
+

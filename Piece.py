@@ -7,17 +7,18 @@ class Piece:
         self.id = id
         self.whitePerspective = whitePerspectiveBool
 
-    def move(self, pointB, grid):
+    def move(self, pointB, grid, deadsQueue):
         if not self.amIPinnedTo(pointB, grid):
             #Move
+            deadsQueue.append(grid[pointB.r][pointB.c].piece.die())
             grid[pointB.r][pointB.c].piece = self
-            grid[pointB.r][pointB.c].piece.die()
             #Update index
             tempIndex = Cell(self.index.r, self.index.c)
             self.index = Cell(pointB.r,pointB.c)
             grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
             return True
         else:
+            print("Piece Pinned. ", end = '')
             return False
 
     def isProtected(self, grid):
@@ -65,6 +66,7 @@ class Piece:
     
     def isUnderAttacked(self, grid):
         l = self.radar("threats", grid)
+        attackers = []
 
         for i in range (len(l)):
             if l[i].id[0] == "0": #Empty PlaceHolder
@@ -72,39 +74,39 @@ class Piece:
 
             elif l[i].id[0] == "r":   #Rook
                 if l[i].index.r == self.index.r or l[i].index.c == self.index.c:
-                    return True
+                    attackers.append(l[i])
 
             elif l[i].id[0] == "b":   #Bishop
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if abs(deltaX) == abs(deltaY):
-                    return True
+                    attackers.append(l[i])
             
             elif l[i].id[0] == "n":   #Knight
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if (abs(deltaY) == 2 and abs(deltaX) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 2):
-                    return True
+                    attackers.append(l[i])
     
             elif l[i].id[0] == "p":  #Pawn
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if (self.whitePerspective and self.player == "white") or (not self.whitePerspective and self.player == "black"):
                     if abs(deltaX) == 1 and deltaY == -1:
-                        return True
+                        attackers.append(l[i])
                 elif (self.whitePerspective and self.player == "black") or (not self.whitePerspective and self.player == "white"):
                     if abs(deltaX) == 1 and deltaY == 1:
-                        return True
+                        attackers.append(l[i])
 
             elif l[i].id[0] == "q": #Queen
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
                 if abs(deltaX) == abs(deltaY):  #Bishop
-                    return True
+                    attackers.append(l[i])
                 elif l[i].index.r == self.index.r or l[i].index.c == self.index.c:   #Rook
-                    return True
+                    attackers.append(l[i])
 
-        return False
+        return attackers
     
     def radar(self, strType, grid): #Returns a list of the first enemies encountered in the vulnerability line of a piece.
         l = []
@@ -194,6 +196,16 @@ class Piece:
 
         return l
         
+    def shootRayTo(self, pointB, grid): #Returns a list of pieces between self and pointB. Only works correctly on horizontaL, vertical, 45deg diagonals. SHOULD NOT BE USED ON HORSES AS POINTB!
+        l = []
+        deltaX = pointB.c - self.index.c
+        deltaY = pointB.r - self.index.r
+        direction = DirectionalVector(deltaY, deltaX)
+
+        for i in range(1,max(abs(deltaX),abs(deltaY))):
+            l.append(grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)].piece)
+        return l
+
     def shootRay(self, direction, grid):    #Shoot a ray in a direction and return an ordered list of pieces encountered
         l = []
 
@@ -237,7 +249,7 @@ class Piece:
         #Direction that King is facing our piece.
         deltaX = self.index.c - kingPiece.index.c
         deltaY = self.index.r - kingPiece.index.r
-        direction = directionalVector(deltaY, deltaX)
+        direction = DirectionalVector(deltaY, deltaX)
 
         #Shoot an ray to detect pieces in such direction
         rayList = kingPiece.shootRay(direction, grid)
@@ -287,14 +299,14 @@ class Piece:
                 reachedEnemyPiece = True
             
         for var in squaresBetweenPieceNEnemy:
-            if var.index == pointB.index:
+            if var.index == pointB:
                 return False
         
         #If all previous filters are passed, then piece is pinned.
         return True
 
     def die(self):
-        pass
+        return self
 
 class Empty(Piece):
     graphic = "  "

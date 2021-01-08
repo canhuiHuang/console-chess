@@ -11,17 +11,23 @@ class King(Piece):
         deltaX = pointB.c - self.index.c
 
         if (abs(deltaY) == 1 and abs(deltaY) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 0) or (abs(deltaY) == 0 and abs(deltaX) == 1):
-            if (grid[pointB.r][pointB.c].piece.id == self.id):
+            if (grid[pointB.r][pointB.c].piece.player == self.player):  #Moving to occupied square by allied piece
                 print("Obstructed. ", end = '')
                 return False
-            elif grid[pointB.r][pointB.c].piece.id != self.id and grid[pointB.r][pointB.c].piece.isProtected(grid):
+            elif grid[pointB.r][pointB.c].piece.player != self.player and grid[pointB.r][pointB.c].piece.isProtected(grid): #Trying to capture opponent's piece
                 print("Piece is protected. ", end = '')
                 return False
+            elif grid[pointB.r][pointB.c].piece.id[0] == "0":   #Moving to empty square
+                ghost = ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
+                if ghost.isUnderAttacked(grid):
+                    return False
+                else:
+                    return True
             else:   
                 return True
-        elif (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:
+        elif (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:    #Castling
             deltaX = pointB.c - self.index.c
-            direction = directionalVector(0, deltaX)
+            direction = DirectionalVector(0, deltaX)
 
             if self.isUnderAttacked(grid):
                 return False   
@@ -38,12 +44,12 @@ class King(Piece):
             return False
             
 
-    def move(self, pointB, grid):
+    def move(self, pointB, grid, deadsQueue):
         #Castle
         if (grid[pointB.r][pointB.c].piece.id[0] == "r" and grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and grid[pointB.r][pointB.c].piece.castleable):
             #Castling
             deltaX = pointB.c - self.index.c
-            direction = directionalVector(0, deltaX)
+            direction = DirectionalVector(0, deltaX)
 
             kingTempIndex = Cell(self.index.r, self.index.c)
             RookTempIndex = Cell(pointB.r, pointB.c)
@@ -63,8 +69,8 @@ class King(Piece):
             ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
             if not ghost.isUnderAttacked(grid):
                 #Move
-                grid[pointB.r][pointB.c].piece =  self
-                grid[pointB.r][pointB.c].piece.die()
+                deadsQueue.append(grid[pointB.r][pointB.c].piece.die())
+                grid[pointB.r][pointB.c].piece = self
                 #Update index
                 tempIndex = Cell(self.index.r, self.index.c)
                 self.index = Cell(pointB.r,pointB.c)
@@ -87,7 +93,7 @@ class Rook(Piece):
 
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
-        direction = directionalVector(deltaY,deltaX)
+        direction = DirectionalVector(deltaY,deltaX)
 
         if (deltaY == 0 and deltaX != 0) or (deltaY != 0 and deltaX == 0):  #There is only one 0 in {rb - ra, cb - ca}
             distance = abs(deltaY + deltaX)
@@ -100,10 +106,10 @@ class Rook(Piece):
             return False
         return True
 
-    def move(self, pointB, grid):
+    def move(self, pointB, grid, deadQueue):
         #Move
+        deadQueue.append(grid[pointB.r][pointB.c].piece.die())
         grid[pointB.r][pointB.c].piece =  self
-        grid[pointB.r][pointB.c].piece.die()
         #Update index
         tempIndex = Cell(self.index.r, self.index.c)
         self.index = Cell(pointB.r,pointB.c)
@@ -124,7 +130,7 @@ class Bishop(Piece):
         #Deltas from A to B:
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
-        direction = directionalVector(deltaY, deltaX)
+        direction = DirectionalVector(deltaY, deltaX)
 
         if (abs(deltaX) != abs(deltaY)):   #Not valid diagonal? slope must be 1/2.
              print ("Can't move there. ", end = '')
@@ -166,14 +172,14 @@ class Pawn(Piece):
         self.doublePushAvailable = True
         self.enPassanteable = False
 
-    def move(self, pointB, grid):
+    def move(self, pointB, grid, deadsQueue):
         #En passant Boolean
         if (self.enPassanteable):
             self.enPassanteable = False
 
         #Move
+        deadsQueue.append(grid[pointB.r][pointB.c].piece.die())
         grid[pointB.r][pointB.c].piece =  self
-        grid[pointB.r][pointB.c].piece.die()
         #Update index
         tempIndex = Cell(self.index.r, self.index.c)
         self.index = Cell(pointB.r,pointB.c)
