@@ -4,21 +4,43 @@ from Square import *
 from VectorX import *
 
 #Functions
-def inputValidation():
-    playerInput = "none"
-    if (turn == 1):
-        playerInput = input(whiteInputPrompt)
-    else:
-        playerInput = input(blackInputPrompt)
-    playerInput = isCmdValid(playerInput)
-
-    while (playerInput == "invalid"):
+def legalMoveValidation(userInput, board):
+    legal = translate(pair2Coord(userInput[0] + userInput[1]),pair2Coord(userInput[3] + userInput[4]), board)
+    newInput = ""
+    if legal:
+        return userInput
+    while (not legal):
         if (turn == 1):
-            playerInput = input(whiteInputPrompt)
+            newInput = input(whiteInputPrompt)
         else:
-            playerInput = input(blackInputPrompt)
-        playerInput = isCmdValid(playerInput)
-    return playerInput
+            newInput = input(blackInputPrompt)
+
+        newInput = isCmdValid(newInput)
+        while (newInput == "invalid"):
+            if (turn == 1):
+                newInput = input(whiteInputPrompt)
+            else:
+                newInput = input(blackInputPrompt)
+            newInput = isCmdValid(newInput)
+
+        legal = translate(pair2Coord(newInput[0] + newInput[1]),pair2Coord(newInput[3] + newInput[4]), board)
+    return newInput
+
+def inputValidation():
+    userInput = "none"
+    if (turn == 1):
+        userInput = input(whiteInputPrompt)
+    else:
+        userInput = input(blackInputPrompt)
+    userInput = isCmdValid(userInput)
+
+    while (userInput == "invalid"):
+        if (turn == 1):
+            userInput = input(whiteInputPrompt)
+        else:
+            userInput = input(blackInputPrompt)
+        userInput = isCmdValid(userInput)
+    return userInput
 
 #CheckOn
 def checkOn():
@@ -241,29 +263,26 @@ turn = 1
 showBoard()
 
 while (not gameOver):
-
-    #Input Validation
-    pInput = inputValidation()
-
     #CheckState
+    checkstate = checkOn()
+
+    while checkstate == 1:
+        ghostgrid = grid
+        ghostDeadPiecesQueue = deadPiecesQueue
+
+        playerInput = inputValidation()
+        playerInput = legalMoveValidation(playerInput, ghostgrid)
+        if translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), ghostgrid):
+            translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
+ 
+
+    while checkstate == 0:
+        #Input Validation
+        normalInput = inputValidation()
+
 
 
     #Legal Move Validation
-    legal = translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
-    while (not legal):
-        if (turn == 1):
-            playerInput = input(whiteInputPrompt)
-        else:
-            playerInput = input(blackInputPrompt)
-
-        playerInput = isCmdValid(playerInput)
-        while (playerInput == "invalid"):
-            if (turn == 1):
-                playerInput = input(whiteInputPrompt)
-            else:
-                playerInput = input(blackInputPrompt)
-
-        legal = translate(pair2Coord(playerInput[0] + playerInput[1]),pair2Coord(playerInput[3] + playerInput[4]), grid)
 
     #Next turn    
     turn *= -1
