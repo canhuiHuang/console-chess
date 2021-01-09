@@ -71,11 +71,9 @@ class Piece:
                     attackers.append(l[i])
 
             elif l[i].id[0] == "k": #King
-                rivalPlayer = "black"
-                if self.player == "black":
-                    rivalPlayer = "white"
-                evilSelfGhost = Empty(Cell(self.index.r, self.index.c), "ghost", rivalPlayer, self.whitePerspective)
-                if not evilSelfGhost.isUnderAttacked(grid): #It's okay to recursively call because...
+                deltaX = l[i].index.c - self.index.c
+                deltaY = l[i].index.r - self.index.r
+                if abs(deltaX) <= 1 and abs(deltaY) <= 1:
                     attackers.append(l[i])
 
         return attackers
@@ -206,16 +204,16 @@ class Piece:
 
     def amIPinnedTo(self, pointB, board):    #Checks if a piece is pinned to move to pointB
         
-        ghostBoard = Board(board.grid, "ghostBoard", board.whiteKingIndex, board.blackKingIndex)
         turn = 1
         if self.player == "black":
             turn = -1
-        ghostBoard.grid[pointB.r][pointB.c].piece = self
-        ghostBoard.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
-        checkstate = ghostBoard.checkStatus(turn)
+        tempPointBPiece = board.grid[pointB.r][pointB.c].piece
+        board.grid[pointB.r][pointB.c].piece = self
+        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
+        checkstate = board.checkStatus(turn)
         
-        ghostBoard.grid[pointB.r][pointB.c].piece = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
-        ghostBoard.grid[self.index.r][self.index.c].piece = self
+        board.grid[pointB.r][pointB.c].piece = tempPointBPiece
+        board.grid[self.index.r][self.index.c].piece = self
         if checkstate == 0:
             return False
         else:

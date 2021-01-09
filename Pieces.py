@@ -229,7 +229,7 @@ class Pawn(Piece):
             elif abs(deltaX) == 1 and abs(deltaY) == 1:      #If diagonal move
                 if (board.grid[pointB.r][pointB.c].piece.player != self.player and board.grid[pointB.r][pointB.c].piece.id[0] != "0"):
                     return True
-                elif (board.grid[self.index.r][self.index.c + deltaX].piece[0] == "p" and board.grid[self.index.r][self.index.c + deltaX].piece.player != self.player):    #If opponent's pawn is Enpassanteable.
+                elif (board.grid[self.index.r][self.index.c + deltaX].piece.id[0] == "p" and board.grid[self.index.r][self.index.c + deltaX].piece.player != self.player):    #If opponent's pawn is Enpassanteable.
                     if board.grid[self.index.r][self.index.c + deltaX].piece.enPassanteable:
                         board.grid[self.index.r][self.index.c + deltaX].piece.player.die()    #Shouldn't kill a piece in this part of the code, but w.e lol
                         return True

@@ -175,8 +175,8 @@ def undo(pointA, pointB, board): #Can't untranslate castling
 ###############################################
 turns = [1, -1]
 turn = random.choice(turns) #1 for white, #-1 for black
-bkI = Cell(0,4)
-wkI = Cell(7,4)
+bkI = Cell(-1,-1)
+wkI = Cell(-1,-1)
 
 whitePerspective = True
 yLabel = ['1','2','3','4','5','6','7','8']
@@ -216,13 +216,13 @@ grid[0][2].piece = Bishop(Cell(0,2), "b1" + player[0], player, whitePerspective)
 if whitePerspective:
     grid[0][3].piece = Queen(Cell(0,3), "q" + player[0], player, whitePerspective)
     grid[0][4].piece = King(Cell(0,4), "k" + player[0], player, whitePerspective)
-    bkI = Cell(0,4)
-    wkI = Cell(7,4)
+    bkI = grid[0][4].piece.index
+    wkI = grid[7][4].piece.index
 else:
     grid[0][3].piece = King(Cell(0,3), "k" + player[0], player, whitePerspective)
     grid[0][4].piece = Queen(Cell(0,4), "q" + player[0], player, whitePerspective)
-    wkI = Cell(0,4)
-    bkI = Cell(7,4)
+    bkI = grid[0][3].piece.index
+    wkI = grid[7][3].piece.index
 grid[0][5].piece = Bishop(Cell(0,5), "b2" + player[0], player, whitePerspective)
 grid[0][6].piece = Knight(Cell(0,6), "n2" + player[0], player, whitePerspective)
 grid[0][7].piece = Rook(Cell(0,7), "r2" + player[0], player, whitePerspective)
@@ -260,12 +260,11 @@ while (not gameOver):
 
     while checkstate == 1:
         print("CHECK")
-        ghostBoard = board
 
         #Input & Legal Move validation
         playerInput = inputValidation()
         pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
-        piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
+        piece = board.grid[pieceCoord.r][pieceCoord.c].piece
         destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
 
         pString = "white"
@@ -276,18 +275,27 @@ while (not gameOver):
         while (not piece.moveable(destinyCoord,board)) or (piece.player != pString):
             playerInput = inputValidation()
             pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
-            piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
+            piece = board.grid[pieceCoord.r][pieceCoord.c].piece
             destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
 
             if piece.player != pString:
                 print("Can't move opponent's piece.")
 
-        #Traslate on ghost board & check for checks xd
-        ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard)
-        checkstate = ghostBoard.checkStatus(turn)
+        #Fake Traslation on board & check for checks xd
+        tempPointBPiece = board.grid[destinyCoord.r][destinyCoord.c].piece
+        board.grid[destinyCoord.r][destinyCoord.c].piece = piece
+        board.grid[pieceCoord.r][pieceCoord.c].piece = Empty(Cell(pieceCoord.r, pieceCoord.c), "0", "none", whitePerspective)
+
+        print("before")
+        checkstate = board.checkStatus(turn)
+        print("after")
+
+        board.grid[pieceCoord.r][pieceCoord.c].piece = piece
+        board.grid[destinyCoord.r][destinyCoord.c].piece = tempPointBPiece
 
         if checkstate == 0:
-            board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard)
+            print("whats up")
+            piece.move(destinyCoord,board)
 
     if checkstate == 0:
         #Input & Legal Move validation
@@ -311,7 +319,7 @@ while (not gameOver):
             if piece.player != pString:
                 print("Can't move opponent's piece.")
         
-        board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,board)
+        piece.move(destinyCoord,board)
     
     elif checkstate == 2:
         print("CHECKMATE")

@@ -14,11 +14,7 @@ class Square:
 class Board:
     def __init__(self, originalGrid, name, whiteKingIndex, blackKingIndex):
         self.grid = []
-        for var in originalGrid:
-            internalList = []
-            for var2 in var:
-                internalList.append(var2)
-            self.grid.append(internalList)
+        self.grid = originalGrid
 
         self.name = name
 
@@ -164,9 +160,17 @@ class Board:
         king = self.grid[self.whiteKingIndex.r][self.whiteKingIndex.c].piece
         if turn == -1:
             king = self.grid[self.blackKingIndex.r][self.blackKingIndex.c].piece
-        
+        print ("wKing: ", self.whiteKingIndex.r,self.whiteKingIndex.c)
+        print ("bKing: ", self.blackKingIndex.r,self.blackKingIndex.c)
+        print ("this king: ", king.index.r, king.index.c)
+
+
         attackers = king.isUnderAttacked(self.grid)
+        print(king.player)
         print("attackers: ", len(attackers))
+        for var in attackers:
+            print("attacker: ", var.id)
+
         if len(attackers) > 0:
             if len(attackers) == 1: #Single Attack
                 
@@ -174,11 +178,14 @@ class Board:
                 attacker = attackers[0]
                 #Can attacker be captured?
                 defenders = attacker.isUnderAttacked(self.grid)
+                print("defenders: ", len(defenders))
                 for defender in defenders:
                     if defender.id[0] == "k":
                         if king.moveable(attacker.index, self):
+                            print("king moveable")
                             return 1
-                    if not defender.amIPinnedTo(attacker.index, self.grid):
+                    elif not defender.amIPinnedTo(attacker.index, self):
+                        print("a defender is not pinned")
                         return 1
                 print(2)
                 
@@ -199,9 +206,11 @@ class Board:
                 unitVector = DirectionalVector(1,1)
                 for i in range(9):
                     sqr = king.index + unitVector
-                    if not (sqr.r > 7 or sqr.c > 7):
+                    if (sqr.r <= 7 and sqr.r >= 0) and (sqr.c <= 7 and sqr.c >= 0):
+                        print(sqr.r, sqr.c)
                         if king.moveable(sqr,self):
                             return 1
+                    unitVector.rotate()
                 print(4)
                 
                 return 2
