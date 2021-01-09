@@ -7,62 +7,25 @@ class Piece:
         self.id = id
         self.whitePerspective = whitePerspectiveBool
 
-    def move(self, pointB, grid, deadsQueue):
-        if not self.amIPinnedTo(pointB, grid):
-            #Move
-            deadsQueue.append(grid[pointB.r][pointB.c].piece.die())
-            grid[pointB.r][pointB.c].piece = self
-            #Update index
-            tempIndex = Cell(self.index.r, self.index.c)
-            self.index = Cell(pointB.r,pointB.c)
-            grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
-            return True
-        else:
-            print("Piece Pinned. ", end = '')
-            return False
+    def move(self, pointB, board):
+        #Move
+        board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
+        board.grid[pointB.r][pointB.c].piece = self
+        #Update index
+        tempIndex = Cell(self.index.r, self.index.c)
+        self.index = Cell(pointB.r,pointB.c)
+        board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+        return True
 
     def isProtected(self, grid):
-        l = self.radar("allies+", grid)
-
-        for i in range (len(l)):
-            if (l[i].id)[0] == "0": #Empty PlaceHolder
-                pass
-
-            elif (l[i].id)[0] == "r":   #Rook
-                if l[i].index.r == self.index.r or l[i].index.c == self.index.c:
-                    return True
-
-            elif (l[i].id)[0] == "b":   #Bishop
-                deltaX = l[i].index.c - self.index.c
-                deltaY = l[i].index.r - self.index.r
-                if abs(deltaX) == abs(deltaY):
-                    return True
-            
-            elif (l[i].id)[0] == "n":   #Knight
-                deltaX = l[i].index.c - self.index.c
-                deltaY = l[i].index.r - self.index.r
-                if (abs(deltaY) == 2 and abs(deltaX) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 2):
-                    return True
-    
-            elif (l[i].id)[0] == "p":  #Pawn
-                deltaX = l[i].index.c - self.index.c
-                deltaY = l[i].index.r - self.index.r
-                if (self.whitePerspective and self.player == "white") or (not self.whitePerspective and self.player == "black"):
-                    if abs(deltaX) == 1 and deltaY == 1:
-                        return True
-                elif (self.whitePerspective and self.player == "black") or (not self.whitePerspective and self.player == "white"):
-                    if abs(deltaX) == 1 and deltaY == -1:
-                        return True
-
-            elif (l[i].id)[0] == "q": #Queen
-                deltaX = l[i].index.c - self.index.c
-                deltaY = l[i].index.r - self.index.r
-                if abs(deltaX) == abs(deltaY):  #Bishop
-                    return True
-                elif l[i].index.r == self.index.r or l[i].index.c == self.index.c:   #Rook
-                    return True
-
-        return False
+        rivalPlayer = "black"
+        if self.player == "black":
+            rivalPlayer = "white"
+        ghostEvilSelf = Empty(Cell(self.index.r, self.index.c), "ghost", rivalPlayer, self.whitePerspective)
+        if ghostEvilSelf.isUnderAttacked(grid):
+            return True
+        else:
+            return False
     
     def isUnderAttacked(self, grid):
         l = self.radar("threats", grid)
@@ -104,6 +67,14 @@ class Piece:
                 if abs(deltaX) == abs(deltaY):  #Bishop
                     attackers.append(l[i])
                 elif l[i].index.r == self.index.r or l[i].index.c == self.index.c:   #Rook
+                    attackers.append(l[i])
+
+            elif l[i].id[0] == "k": #King
+                rivalPlayer = "black"
+                if self.player == "black":
+                    rivalPlayer = "white"
+                evilSelfGhost = Empty(Cell(self.index.r, self.index.c), "ghost", rivalPlayer, self.whitePerspective)
+                if not evilSelfGhost.isUnderAttacked(grid): #It's okay to recursively call because...
                     attackers.append(l[i])
 
         return attackers
@@ -305,11 +276,12 @@ class Piece:
         #If all previous filters are passed, then piece is pinned.
         return True
 
-    def die(self):
-        return self
-
+    def die(self,board):
+        board.appendDeadPiece(self)
+        self = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
 class Empty(Piece):
     graphic = "  "
+    value = 0
 
     def moveable(self, pointB, grid):
         print("There is nothing to move!")

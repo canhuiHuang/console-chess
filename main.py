@@ -26,86 +26,97 @@ def checkmate():
     else:
         print("Checkmate. White Wins!")
 
-def checkOn(board):
-    king = board.grid[whiteKingIndex.r][whiteKingIndex.c].piece
+def checkOn(boardParameter):
+    king = boardParameter.grid[boardParameter.whiteKingIndex.r][boardParameter.whiteKingIndex.c].piece
     if turn == -1:
-        king = board.grid[blackKingIndex.r][blackKingIndex.c].piece
+        king = boardParameter.grid[boardParameter.blackKingIndex.r][boardParameter.blackKingIndex.c].piece
 
-    attackers = king.isUnderAttacked(board.grid)
+    attackers = king.isUnderAttacked(boardParameter.grid)
+    print("White King Index: ", boardParameter.whiteKingIndex.r, boardParameter.whiteKingIndex.c)
+    print("Black King Index: ", boardParameter.blackKingIndex.r, boardParameter.blackKingIndex.c)
+    print("attackers: ", len(attackers))
     if len(attackers) > 0:
         if len(attackers) == 1: #Single Attack
-
+            
+            print(1)
             attacker = attackers[0]
             #Can attacker be captured?
-            defenders = attacker.isUnderAttacked(board.grid)
+            defenders = attacker.isUnderAttacked(boardParameter.grid)
             for defender in defenders:
-                if not defender.amIPinnedTo(attacker.index, board.grid):
+                if defender.id[0] == "k":
+                    if king.moveable(attacker.index, boardParameter):
+                        return 1
+                if not defender.amIPinnedTo(attacker.index, boardParameter.grid):
                     return 1
+            print(2)
             
             #The reason amIPinned can be used is because the defender is attacking the Attacker, which means that it is LEGAL to move there,
             #So, the only thing else that needs to be checked is to see whether the defender is pinned or not.
 
             #Can the attack be blocked?
-            sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,board.grid)
+            sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,boardParameter.grid)
             ghostSqrs = sqrsBetweenAttackerNKing
             for sqr in ghostSqrs:
-                sqr.piece.player = attacker.player
-                possibleBlockers = sqr.isUnderAttacked(board.grid)
+                sqr.player = attacker.player
+                possibleBlockers = sqr.isUnderAttacked(boardParameter.grid)
                 for blocker in possibleBlockers:
-                    if not blocker.amIPinnedTo(sqr.index, board.grid):
+                    if not blocker.amIPinnedTo(sqr.index, boardParameter.grid):
                         return 1
-
+            print(3)
             #Can King move?
             unitVector = DirectionalVector(1,1)
             for i in range(9):
                 sqr = king.index + unitVector
-                if king.moveable(sqr,board.grid):
-                    return 1
+                if not (sqr.r > 7 or sqr.c > 7):
+                    if king.moveable(sqr,boardParameter):
+                        return 1
+            print(4)
             
             return 2
         
         elif len(attackers) == 2: #Double Attack
+            print(69)
             #Can King move?
             unitVector = DirectionalVector(1,1)
             for i in range(9):
                 sqr = king.index + unitVector
-                if king.moveable(sqr,board):
+                if king.moveable(sqr,boardParameter):
                     return 1
             return 2
     else:
         return 0
 
-def showBoard():
+def showBoard(board):
     print ("|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
     if whitePerspective and turn == -1:
-        print("|        black                                         |")
+        print("|   black   ",board.getCapturedPieces("black"),"|")
     elif (not whitePerspective and turn == 1):
-        print("|        white                                         |")
+        print("|   white   ",board.getCapturedPieces("white"),"|")
     else:
         print("|                                                      |")
     print ("|______________________________________________________|")
 
-    print ("    ", end = '')
+    print ("  ", end = '')
     for i in range(8):
-        print(" ", xLabel[7 - i], " ", end = '')
+        print(" ", xLabel[i], " ", end = '')
     print()
     for r in range(8):
-        print("   ","|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|")
-        print(' ', yLabel[7 - r], "| ", end = '')
+        print("  |‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|‾‾‾‾|")
+        print(yLabel[7 - r], "| ", end = '')
         for c in range(8):
-            print(grid[r][c].piece.graphic,"| ", end = '')
+            print(board.grid[r][c].piece.graphic,"| ", end = '')
         print()
-    print("   "," ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ ")
-    print ("    ", end = '')
+    print("   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ ")
+    print ("  ", end = '')
     for i in range(8):
         print(" ", xLabel[i], " ", end = '')
     print()
 
     print ("|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
     if whitePerspective and turn == 1:
-        print("|       White                                          |")
+        print("|   white   ",board.getCapturedPieces("white"),"|")
     elif not whitePerspective and turn == -1:
-        print("|       Black                                          |")
+        print("|   black   ",board.getCapturedPieces("black"),"|")
     else:
         print("|                                                      |")
     print ("|______________________________________________________|")
@@ -157,39 +168,21 @@ def pair2Coord(pairString):        #Converts cmd to Coord in the grid.
 
     return Cell(r,c)
 
-def untranslate(pointA, pointB, board, deadsQueue): #Can't untranslate castling
+def undo(pointA, pointB, board): #Can't untranslate castling
     board.grid[pointA.r][pointA.c].piece = board.grid[pointB.r][pointB.c].piece
-    board.grid[pointB.r][pointB.c].piece = deadsQueue.pop(len(deadsQueue) - 1)
-
-def translate(pointA, pointB, board, deadsQueue):
-    if (turn == 1 and board.grid[pointA.r][pointA.c].piece.player == "white") or (turn == -1 and board.grid[pointA.r][pointA.c].piece.player == "black"):
-        if board.grid[pointA.r][pointA.c].piece.moveable(pointB, board.grid):
-            if board.grid[pointA.r][pointA.c].piece.move(pointB,board.grid):
-                return True
-            else:
-                return False
-        else:
-            print("Can not perform the command. ")
-            return False
-    elif (board.grid[pointA.r][pointA.c].piece.player == "none"):
-        print("No piece selected to move. ")
-        return False
-    else:
-        print("Can't move opponent's piece. ")
-        return False
+    board.grid[pointB.r][pointB.c].piece = board.deadsQueue.pop(len(board.deadsQueue) - 1)
 
 ###############################################
 turns = [1, -1]
 turn = random.choice(turns) #1 for white, #-1 for black
-blackKingIndex = Cell(7,4)
-whiteKingIndex = Cell(0,4)
-deadPiecesQueue = [Empty(Cell(-1, -1), "0", "shouldNotBeInvoked", whitePerspective)]
+bkI = Cell(0,4)
+wkI = Cell(7,4)
 
 whitePerspective = True
 yLabel = ['1','2','3','4','5','6','7','8']
 xLabel = ['a','b','c','d','e','f','g','h']
 
-if (turn == -1):        #Flip Table if perspective player is black.
+if (turn == -1):        #Flip Labels if perspective player is black.
     tempY = [None]*8
     for i in range(len(yLabel)):
         tempY[i] = yLabel[7 - i]
@@ -211,7 +204,7 @@ grid = []
 for r in range(8):
     tempRow = []
     for c in range(8):
-            tempRow.append(Square(Cell(yLabel[r], xLabel[c]),Empty(Cell(yLabel[r], xLabel[c]), "0", "none", whitePerspective), False))
+        tempRow.append(Square(Cell(yLabel[r], xLabel[c]),Empty(Cell(yLabel[r], xLabel[c]), "0", "none", whitePerspective), False))
     grid.append(tempRow)
 #Fill Board with pieces
 player = "black"
@@ -220,8 +213,16 @@ if (turn == -1):
 grid[0][0].piece = Rook(Cell(0,0), "r1" + player[0], player, whitePerspective)
 grid[0][1].piece = Knight(Cell(0,1), "n1" + player[0], player, whitePerspective)
 grid[0][2].piece = Bishop(Cell(0,2), "b1" + player[0], player, whitePerspective)
-grid[0][3].piece = Queen(Cell(0,3), "q" + player[0], player, whitePerspective)
-grid[0][4].piece = King(Cell(0,4), "k" + player[0], player, whitePerspective)
+if whitePerspective:
+    grid[0][3].piece = Queen(Cell(0,3), "q" + player[0], player, whitePerspective)
+    grid[0][4].piece = King(Cell(0,4), "k" + player[0], player, whitePerspective)
+    bkI = Cell(0,4)
+    wkI = Cell(7,4)
+else:
+    grid[0][3].piece = King(Cell(0,3), "k" + player[0], player, whitePerspective)
+    grid[0][4].piece = Queen(Cell(0,4), "q" + player[0], player, whitePerspective)
+    wkI = Cell(0,4)
+    bkI = Cell(7,4)
 grid[0][5].piece = Bishop(Cell(0,5), "b2" + player[0], player, whitePerspective)
 grid[0][6].piece = Knight(Cell(0,6), "n2" + player[0], player, whitePerspective)
 grid[0][7].piece = Rook(Cell(0,7), "r2" + player[0], player, whitePerspective)
@@ -232,50 +233,61 @@ if (player == "black"):
     player = "white"
 else:
     player = "black"
-    whiteKingIndex = Cell(0,4)
-    blackKingIndex = Cell(7,4)
 grid[7][0].piece = Rook(Cell(7,0), "r1" + player[0], player, whitePerspective)
 grid[7][1].piece = Knight(Cell(7,1), "n1" + player[0], player, whitePerspective)
 grid[7][2].piece = Bishop(Cell(7,2), "b1" + player[0], player, whitePerspective)
-grid[7][3].piece = Queen(Cell(7,3), "q" + player[0], player, whitePerspective)
-grid[7][4].piece = King(Cell(7,4), "k" + player[0], player, whitePerspective)
+if whitePerspective:
+    grid[7][3].piece = Queen(Cell(7,3), "q" + player[0], player, whitePerspective)
+    grid[7][4].piece = King(Cell(7,4), "k" + player[0], player, whitePerspective)
+else:
+    grid[7][3].piece = King(Cell(7,3), "k" + player[0], player, whitePerspective)
+    grid[7][4].piece = Queen(Cell(7,4), "q" + player[0], player, whitePerspective)
 grid[7][5].piece = Bishop(Cell(7,5), "b2" + player[0], player, whitePerspective)
 grid[7][6].piece = Knight(Cell(7,6), "n2" + player[0], player, whitePerspective)
 grid[7][7].piece = Rook(Cell(7,7), "r2" + player[0], player, whitePerspective)
 for i in range(8):
     grid[6][i].piece = Pawn(Cell(6,i), "p" + str(i + 1) + player[0], player, whitePerspective)
-board = Board(grid,"originalGrid", deadPiecesQueue)
+board = Board(grid,"originalGrid",wkI,bkI)
 
 turn = 1
-#Show Board
-showBoard()
-
 while (not gameOver):
+    #Show Board
+    showBoard(board)
+
     #CheckState
-    checkstate = checkOn(grid)
+    checkstate = checkOn(board)
+    print(checkstate)
 
     while checkstate == 1:
+        print("CHECK")
         ghostBoard = board
-        ghostDeadPiecesQueue = deadPiecesQueue
 
         #Input & Legal Move validation
         playerInput = inputValidation()
         pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
         piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
         destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
-        while not piece.moveable(destinyCoord,board):
-            playerInput = inputValidation()
 
+        pString = "white"
+        if turn == -1:
+            pString = "black"
+        if piece.player != pString:
+            print("Can't move opponent's piece.")
+        while (not piece.moveable(destinyCoord,board)) or (piece.player != pString):
+            playerInput = inputValidation()
             pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
             piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
             destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
 
+            if piece.player != pString:
+                print("Can't move opponent's piece.")
+
         #Traslate on ghost board & check for checks xd
-        ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard,ghostDeadPiecesQueue)
+        ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard)
         checkOn(ghostBoard)
 
         if checkstate == 0:
-            board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard,ghostDeadPiecesQueue)
+            board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard)
 
     if checkstate == 0:
         #Input & Legal Move validation
@@ -283,19 +295,27 @@ while (not gameOver):
         pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
         piece = board.grid[pieceCoord.r][pieceCoord.c].piece
         destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
-        while not piece.moveable(destinyCoord,board):
-            playerInput = inputValidation()
 
+        pString = "white"
+        if turn == -1:
+            pString = "black"
+        if piece.player != pString:
+            print("Can't move opponent's piece.")
+        while (not piece.moveable(destinyCoord,board)) or (piece.player != pString):
+            playerInput = inputValidation()
             pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
-            piece = ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece
+            piece = board.grid[pieceCoord.r][pieceCoord.c].piece
             destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
+
+            if piece.player != pString:
+                print("Can't move opponent's piece.")
         
-        board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,board,deadPiecesQueue)
+        board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,board)
     
     elif checkstate == 2:
+        print("CHECKMATE")
         checkmate()
         gameOver = True
 
-    #Next turn and show board   
+    #Next turn  
     turn *= -1
-    showBoard()

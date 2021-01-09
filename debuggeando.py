@@ -6,15 +6,12 @@ from VectorX import *
 ###############################################
 turns = [1, -1]
 turn = random.choice(turns) #1 for white, #-1 for black
+blackKingIndex = Cell(0,4)
+whiteKingIndex = Cell(7,4)
 
 whitePerspective = True
 yLabel = ['1','2','3','4','5','6','7','8']
 xLabel = ['a','b','c','d','e','f','g','h']
-
-whiteActiveThreatSquares = [[0]*8]*8
-blackActiveThreatSquares = [[0]*8]*8
-whitePassiveThreatSquares = [[0]*8]*8
-blackPassiveThreatSquares = [[0]*8]*8
 
 if (turn == -1):        #Flip Table if perspective player is black.
     tempY = [None]*8
@@ -28,6 +25,7 @@ if (turn == -1):        #Flip Table if perspective player is black.
     xLabel = tempX
     whitePerspective = False
 
+deadPiecesQueue = [Empty(Cell(-1, -1), "0", "shouldNotBeInvoked", whitePerspective)]
 whiteInputPrompt = "White moves: "
 blackInputPrompt = "Black moves: "
 gameOver = False
@@ -59,6 +57,8 @@ if (player == "black"):
     player = "white"
 else:
     player = "black"
+    whiteKingIndex = Cell(0,4)
+    blackKingIndex = Cell(7,4)
 grid[7][0].piece = Rook(Cell(7,0), "r1" + player[0], player, whitePerspective)
 grid[7][1].piece = Knight(Cell(7,1), "n1" + player[0], player, whitePerspective)
 grid[7][2].piece = Bishop(Cell(7,2), "b1" + player[0], player, whitePerspective)
@@ -69,36 +69,16 @@ grid[7][6].piece = Knight(Cell(7,6), "n2" + player[0], player, whitePerspective)
 grid[7][7].piece = Rook(Cell(7,7), "r2" + player[0], player, whitePerspective)
 for i in range(8):
     grid[6][i].piece = Pawn(Cell(6,i), "p" + str(i + 1) + player[0], player, whitePerspective)
+board = Board(grid,"originalGrid", deadPiecesQueue,whiteKingIndex,)
 
 turn = 1
 
-# direction = directionalVector(-1,0)
-# lista = grid[7][0].piece.shootRay(direction, grid)
-# for var in lista:
-#     print(var.id)
+l = grid[7][3].piece.radar("allies+", board.grid)
 
-# lista = grid[7][0].piece.radar("threats", grid)
-# print("tamano: ",len(lista))
-# for var in lista:
-#     print(var.id)
+for var in l:
+    print(var.id)
 
-def f1():
-    return 2
-
-def f1():
-    return 4
-
-def f1():
-    return 6
-
-def test(a,b,c):
-    return a+b+c
-
-sofa = 1
-sifa = 2
-rera = 3
-
-test(sofa,sifa,rera)
-print(sofa,sifa,rera)
-
-
+if grid[7][3].piece.isProtected(board.grid):
+    print("simon")
+else:
+    print("no we")
