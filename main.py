@@ -255,7 +255,7 @@ while (not gameOver):
     showBoard(board)
 
     #CheckState
-    checkstate = checkOn(board)
+    checkstate = board.checkStatus(turn)
     print(checkstate)
 
     while checkstate == 1:
@@ -284,7 +284,7 @@ while (not gameOver):
 
         #Traslate on ghost board & check for checks xd
         ghostBoard.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard)
-        checkOn(ghostBoard)
+        checkstate = ghostBoard.checkStatus(turn)
 
         if checkstate == 0:
             board.grid[pieceCoord.r][pieceCoord.c].piece.move(destinyCoord,ghostBoard)
@@ -296,6 +296,7 @@ while (not gameOver):
         piece = board.grid[pieceCoord.r][pieceCoord.c].piece
         destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
 
+        print(piece.player)
         pString = "white"
         if turn == -1:
             pString = "black"
@@ -306,7 +307,7 @@ while (not gameOver):
             pieceCoord = pair2Coord(playerInput[0] + playerInput[1])
             piece = board.grid[pieceCoord.r][pieceCoord.c].piece
             destinyCoord = pair2Coord(playerInput[3] + playerInput[4])
-
+            print(piece.player)
             if piece.player != pString:
                 print("Can't move opponent's piece.")
         

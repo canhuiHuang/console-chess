@@ -8,46 +8,43 @@ class King(Piece):
         self.castleable = True
 
     def moveable(self, pointB, board):
-        if not self.amIPinnedTo(pointB, board.grid):
-            deltaY = pointB.r - self.index.r
-            deltaX = pointB.c - self.index.c
+        deltaY = pointB.r - self.index.r
+        deltaX = pointB.c - self.index.c
 
-            if (abs(deltaY) == 1 and abs(deltaY) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 0) or (abs(deltaY) == 0 and abs(deltaX) == 1):
-                if (board.grid[pointB.r][pointB.c].piece.player == self.player):  #Moving to occupied square by allied piece
-                    print("Obstructed.")
+        if (abs(deltaY) == 1 and abs(deltaY) == 1) or (abs(deltaY) == 1 and abs(deltaX) == 0) or (abs(deltaY) == 0 and abs(deltaX) == 1):
+            if (board.grid[pointB.r][pointB.c].piece.player == self.player):  #Moving to occupied square by allied piece
+                print("Obstructed.")
+                return False
+            elif board.grid[pointB.r][pointB.c].piece.id[0] == "0":   #Moving to empty square
+                ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
+                if ghost.isUnderAttacked(board.grid):
+                    print("Can't move there.")
                     return False
-                elif board.grid[pointB.r][pointB.c].piece.id[0] == "0":   #Moving to empty square
-                    ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
-                    if ghost.isUnderAttacked(board.grid):
-                        print("Can't move there.")
-                        return False
-                    else:
-                        return True
-                elif board.grid[pointB.r][pointB.c].piece.player != self.player and board.grid[pointB.r][pointB.c].piece.isProtected(board.grid): #Trying to capture opponent's piece
-                    print("Piece is protected.")
-                    return False
-                else:   
+                else:
                     return True
-            elif (board.grid[pointB.r][pointB.c].piece.id[0] == "r" and board.grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and board.grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:    #Castling
-                deltaX = pointB.c - self.index.c
-                direction = DirectionalVector(0, deltaX)
+            elif board.grid[pointB.r][pointB.c].piece.player != self.player and board.grid[pointB.r][pointB.c].piece.isProtected(board.grid): #Trying to capture opponent's piece
+                print("Piece is protected.")
+                return False
+            else:   
+                return True
+        elif (board.grid[pointB.r][pointB.c].piece.id[0] == "r" and board.grid[pointB.r][pointB.c].piece.player == self.player) and (self.castleable and board.grid[pointB.r][pointB.c].piece.castleable) and deltaY == 0:    #Castling
+            deltaX = pointB.c - self.index.c
+            direction = DirectionalVector(0, deltaX)
 
-                if self.isUnderAttacked(board.grid):
-                    return False   
-                for i in range(1,3):
-                    ghost = Empty(Cell(self.index.r, self.index.c + i * direction.c),"ghost", self.player, self.whitePerspective)
-                    if board.grid[self.index.r][self.index.c + i * direction.c].piece.id[0] != "0" or ghost.isUnderAttacked(board.grid):
-                        print("Can't castle.")
-                        return False
-                if board.grid[pointB.r][pointB.c].piece.isUnderAttacked(board.grid):
+            if self.isUnderAttacked(board.grid):
+                return False   
+            for i in range(1,3):
+                ghost = Empty(Cell(self.index.r, self.index.c + i * direction.c),"ghost", self.player, self.whitePerspective)
+                if board.grid[self.index.r][self.index.c + i * direction.c].piece.id[0] != "0" or ghost.isUnderAttacked(board.grid):
                     print("Can't castle.")
                     return False
-
-                return True
-            else:
-                print("Can't move there.")
+            if board.grid[pointB.r][pointB.c].piece.isUnderAttacked(board.grid):
+                print("Can't castle.")
                 return False
+
+            return True
         else:
+            print("Can't move there.")
             return False
 
     def move(self, pointB, board):
@@ -93,7 +90,7 @@ class Rook(Piece):
         self.castleable = True
 
     def moveable(self, pointB, board):
-        if not self.amIPinnedTo(pointB, board.grid):
+        if not self.amIPinnedTo(pointB, board):
             if (board.grid[pointB.r][pointB.c].piece.player == self.player):
                 print("Can't do that.")
                 return False    #Fuego Amigo xD 
@@ -116,7 +113,7 @@ class Rook(Piece):
         else:
             return False
 
-    def move(self, pointB, board, deadQueue):
+    def move(self, pointB, board):
         #Move
         board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
         board.grid[pointB.r][pointB.c].piece =  self
@@ -134,7 +131,7 @@ class Bishop(Piece):
         self.value = 3
 
     def moveable(self, pointB, board):
-        if not self.amIPinnedTo(pointB, board.grid):
+        if not self.amIPinnedTo(pointB, board):
             if (board.grid[pointB.r][pointB.c].piece.player == self.player):
                 print("Can't do that.")
                 return False    #Fuego Amigo xD 
@@ -164,7 +161,7 @@ class Knight(Piece):
         self.value = 3
 
     def moveable(self, pointB, board):
-        if not self.amIPinnedTo(pointB, board.grid):
+        if not self.amIPinnedTo(pointB, board):
             deltaY = pointB.r - self.index.r
             deltaX = pointB.c - self.index.c
 
@@ -207,8 +204,11 @@ class Pawn(Piece):
         self.doublePushAvailable = False
 
     def moveable(self, pointB, board):
-        if not self.amIPinnedTo(pointB, board.grid):
+        if not self.amIPinnedTo(pointB, board):
             if (board.grid[pointB.r][pointB.c].piece.player == self.player):
+                print("aca1")
+                print(board.grid[pointB.r][pointB.c].piece.player)
+                print(self.player)
                 print("Can't do that.")
                 return False    #Fuego Amigo xD 
 
@@ -265,6 +265,7 @@ class Pawn(Piece):
             distance = abs(deltaY)
             if (distance == 2 and abs(deltaX) == 0 and board.grid[pointB.r + deltaY][pointB.c].piece.id == "0"):  #If doublePush, and y+1 & y+2 are empty.
                 if (not self.doublePushAvailable):
+                    print("aca2")
                     print("Can't do that.")
                     return False
                 else:

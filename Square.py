@@ -1,3 +1,5 @@
+from VectorX import * 
+
 class Square:
     threatened = "False"
     def __init__(self, index, piece, active):
@@ -10,8 +12,14 @@ class Square:
         self.piece = newPiece
 
 class Board:
-    def __init__(self, grid, name, whiteKingIndex, blackKingIndex):
-        self.grid = grid
+    def __init__(self, originalGrid, name, whiteKingIndex, blackKingIndex):
+        self.grid = []
+        for var in originalGrid:
+            internalList = []
+            for var2 in var:
+                internalList.append(var2)
+            self.grid.append(internalList)
+
         self.name = name
 
         #White records
@@ -152,6 +160,63 @@ class Board:
 
         return textStr + emptySpace
 
+    def checkStatus(self, turn):
+        king = self.grid[self.whiteKingIndex.r][self.whiteKingIndex.c].piece
+        if turn == -1:
+            king = self.grid[self.blackKingIndex.r][self.blackKingIndex.c].piece
+        
+        attackers = king.isUnderAttacked(self.grid)
+        print("attackers: ", len(attackers))
+        if len(attackers) > 0:
+            if len(attackers) == 1: #Single Attack
+                
+                print(1)
+                attacker = attackers[0]
+                #Can attacker be captured?
+                defenders = attacker.isUnderAttacked(self.grid)
+                for defender in defenders:
+                    if defender.id[0] == "k":
+                        if king.moveable(attacker.index, self):
+                            return 1
+                    if not defender.amIPinnedTo(attacker.index, self.grid):
+                        return 1
+                print(2)
+                
+                #The reason amIPinned can be used is because the defender is attacking the Attacker, which means that it is LEGAL to move there,
+                #So, the only thing else that needs to be checked is to see whether the defender is pinned or not.
+
+                #Can the attack be blocked?
+                sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,self.grid)
+                ghostSqrs = sqrsBetweenAttackerNKing
+                for sqr in ghostSqrs:
+                    sqr.player = attacker.player
+                    possibleBlockers = sqr.isUnderAttacked(self.grid)
+                    for blocker in possibleBlockers:
+                        if not blocker.amIPinnedTo(sqr.index, self.grid):
+                            return 1
+                print(3)
+                #Can King move?
+                unitVector = DirectionalVector(1,1)
+                for i in range(9):
+                    sqr = king.index + unitVector
+                    if not (sqr.r > 7 or sqr.c > 7):
+                        if king.moveable(sqr,self):
+                            return 1
+                print(4)
+                
+                return 2
+            
+            elif len(attackers) == 2: #Double Attack
+                print(69)
+                #Can King move?
+                unitVector = DirectionalVector(1,1)
+                for i in range(9):
+                    sqr = king.index + unitVector
+                    if king.moveable(sqr,self):
+                        return 1
+                return 2
+        else:
+            return 0
 
 
 

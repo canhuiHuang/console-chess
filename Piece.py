@@ -1,4 +1,5 @@
 from VectorX import * 
+from Square import *
 
 class Piece:
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
@@ -13,7 +14,7 @@ class Piece:
         board.grid[pointB.r][pointB.c].piece = self
         #Update index
         tempIndex = Cell(self.index.r, self.index.c)
-        self.index = Cell(pointB.r,pointB.c)
+        board.grid[self.index.r][self.index.c].piece.index = Cell(pointB.r,pointB.c)
         board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
         return True
 
@@ -203,78 +204,23 @@ class Piece:
 
         return l
 
-    def amIPinnedTo(self, pointB, grid):    #Checks if a piece is pinned to move to pointB
-        #Check if King is in piece's radar
-        searchKingList = self.radar("allies", grid)
-        kingFound = False
-        kingPiece = Empty(Cell(-1,-1), "0", "none", True)
-
-        for var in searchKingList:
-            if var.player == self.player and var.id[0] == "k":
-                kingPiece = var
-                kingFound = True
-
-        if not kingFound:
-            return False
-
-        #Direction that King is facing our piece.
-        deltaX = self.index.c - kingPiece.index.c
-        deltaY = self.index.r - kingPiece.index.r
-        direction = DirectionalVector(deltaY, deltaX)
-
-        #Shoot an ray to detect pieces in such direction
-        rayList = kingPiece.shootRay(direction, grid)
-        piecesList = []
-        for var in rayList:     #List clean up
-            if var.id[0] != "0":
-                piecesList.append(var)
+    def amIPinnedTo(self, pointB, board):    #Checks if a piece is pinned to move to pointB
         
-        #Make sure that the list returned from the ray has at least 2 elements and the 2nd element MUST be an enemy piece.
-        if len(piecesList) < 2:
-            return False
-        if piecesList[1].player == self.player:
-            return False
-
-        #Enemy MUST be in the same line. When Queen is detected by any ray, Queen will be in the same line.
-        if (piecesList[1].id[0] == "b") and (abs(direction.r) != abs(direction)):
-            return False
-        if (piecesList[1].id[0] == "r") and not ((abs(direction.r) == 0 and abs(direction.c) != 0) or (abs(direction.c) == 0 and abs(direction.r) != 0)):
-            return False
-
-        #Shoot an enemy ray & and return False if the first piece encountered is not self
-        enemyRayList = piecesList[1].shootRay(direction.reverse(), grid)
-        enemyPiecesList = []
-        for var in enemyRayList:     #List clean up
-            if var.id[0] != "0":
-                enemyPiecesList.append(var)
-        if len(enemyPiecesList) < 2:
-            return False
-        if not (enemyPiecesList[0] == self and enemyPiecesList[1] == kingPiece):
-            return False
-
-        #Movement checks:
-        #pointB MUST be the same as enemyPiece.index
-        if pointB == piecesList[1].index:
-            return False
+        ghostBoard = Board(board.grid, "ghostBoard", board.whiteKingIndex, board.blackKingIndex)
+        turn = 1
+        if self.player == "black":
+            turn = -1
+        ghostBoard.grid[pointB.r][pointB.c].piece = self
+        ghostBoard.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
+        checkstate = ghostBoard.checkStatus(turn)
         
-        #Or pointB in squares between enemy.piece to self.piece
-        reachedEnemyPiece = False
-        squaresBetweenPieceNEnemy = []
-
-        i = 1
-        while (not reachedEnemyPiece):
-            if grid[self.index.r + direction.r *i][self.index.c + direction.c *i].piece.id[0] == "0":
-                squaresBetweenPieceNEnemy.append(grid[self.index.r + direction.r *i][self.index.c + direction.c *i].piece)
-                i += 1
-            else:
-                reachedEnemyPiece = True
-            
-        for var in squaresBetweenPieceNEnemy:
-            if var.index == pointB:
-                return False
-        
-        #If all previous filters are passed, then piece is pinned.
-        return True
+        ghostBoard.grid[pointB.r][pointB.c].piece = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
+        ghostBoard.grid[self.index.r][self.index.c].piece = self
+        if checkstate == 0:
+            return False
+        else:
+            print("Pinned")
+            return True
 
     def die(self,board):
         board.appendDeadPiece(self)
