@@ -1,5 +1,4 @@
 from VectorX import * 
-from Square import *
 
 class Piece:
     def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
@@ -17,6 +16,10 @@ class Piece:
         board.grid[self.index.r][self.index.c].piece.index = Cell(pointB.r,pointB.c)
         board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
         return True
+    
+    def unmove(self, point, board):
+
+        pass
 
     def isProtected(self, grid):
         rivalPlayer = "black"

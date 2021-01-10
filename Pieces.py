@@ -75,10 +75,6 @@ class King(Piece):
             tempIndex = Cell(self.index.r, self.index.c)
             self.index = Cell(pointB.r,pointB.c)
             board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
-            if self.player == "white":
-                board.whiteKingIndex = self.index
-            else:
-                board.blackKingIndex = self.index
 
             self.castleable = False
 
@@ -191,8 +187,15 @@ class Pawn(Piece):
 
     def move(self, pointB, board):
         #En passant Boolean
-        if (self.enPassanteable):
+        deltaY = pointB.r - self.index.r
+        deltaX = pointB.c - self.index.c
+        if abs(deltaY) == 2:
+            self.enPassanteable = True
+        else:
             self.enPassanteable = False
+
+        if board.grid[self.index.r][self.index.c + deltaX].piece.id[0] == "p" and board.grid[self.index.r][self.index.c + deltaX].piece.player != self.player and board.grid[self.index.r][self.index.c + deltaX].piece.enPassanteable: 
+            board.grid[self.index.r][self.index.c + deltaX].piece.die(board)
 
         #Move
         board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
@@ -231,7 +234,6 @@ class Pawn(Piece):
                     return True
                 elif (board.grid[self.index.r][self.index.c + deltaX].piece.id[0] == "p" and board.grid[self.index.r][self.index.c + deltaX].piece.player != self.player):    #If opponent's pawn is Enpassanteable.
                     if board.grid[self.index.r][self.index.c + deltaX].piece.enPassanteable:
-                        board.grid[self.index.r][self.index.c + deltaX].piece.player.die()    #Shouldn't kill a piece in this part of the code, but w.e lol
                         return True
                     else:
                         return False
@@ -262,15 +264,13 @@ class Pawn(Piece):
                     print("Can't move there.")
                     return False
 
-            distance = abs(deltaY)
-            if (distance == 2 and abs(deltaX) == 0 and board.grid[pointB.r + deltaY][pointB.c].piece.id == "0"):  #If doublePush, and y+1 & y+2 are empty.
+            distance = abs(deltaY) 
+            if (distance == 2 and abs(deltaX) == 0 and board.grid[pointB.r + deltaY][pointB.c].piece.id[0] == "0" and board.grid[pointB.r + int(deltaY/abs(deltaY))][pointB.c].piece.id[0] == "0"):  #If doublePush, and y+1 & y+2 are empty.
                 if (not self.doublePushAvailable):
-                    print("aca2")
                     print("Can't do that.")
                     return False
                 else:
                     self.doublePushAvailable = False
-                    self.enPassanteable = True
                     return True
             elif (distance == 1 and board.grid[pointB.r][pointB.c].piece.id != "0"):    #If travel distance == 1 && with obstruction
                 print("Obstructed. Can't move there.")

@@ -1,4 +1,5 @@
 from VectorX import * 
+from Pieces import *
 
 class Square:
     threatened = "False"
@@ -12,14 +13,78 @@ class Square:
         self.piece = newPiece
 
 class Board:
-    def __init__(self, originalGrid, name, whiteKingIndex, blackKingIndex):
-        self.grid = []
-        self.grid = originalGrid
+    def __init__(self, turn):
 
-        self.name = name
+        self.whitePerspective = True
+        self.yLabel = ['1','2','3','4','5','6','7','8']
+        self.xLabel = ['a','b','c','d','e','f','g','h']
+
+        if (turn == -1):        #Flip Labels if perspective player is black.
+            tempY = [None]*8
+            for i in range(len(self.yLabel)):
+                tempY[i] = self.yLabel[7 - i]
+            self.yLabel = tempY
+
+            tempX = [None]*8
+            for i in range(len(self.xLabel)):
+                tempX[i] = self.xLabel[7 - i]
+            self.xLabel = tempX
+            self.whitePerspective = False
+
+        self.whiteKing = Empty(Cell(-1,-1), "0", "none", self.whitePerspective)
+        self.blackKing = Empty(Cell(-1,-1), "0", "none", self.whitePerspective)
+
+        #Create Empty 8x8 Board
+        self.grid = []
+        for r in range(8):
+            tempRow = []
+            for c in range(8):
+                tempRow.append(Square(Cell(self.yLabel[r], self.xLabel[c]),Empty(Cell(self.yLabel[r], self.xLabel[c]), "0", "none", self.whitePerspective), False))
+            self.grid.append(tempRow)
+        #Fill Board with pieces
+        player = "black"
+        if (turn == -1):
+            player = "white"
+        self.grid[0][0].piece = Rook(Cell(0,0), "r1" + player[0], player, self.whitePerspective)
+        self.grid[0][1].piece = Knight(Cell(0,1), "n1" + player[0], player, self.whitePerspective)
+        self.grid[0][2].piece = Bishop(Cell(0,2), "b1" + player[0], player, self.whitePerspective)
+        if self.whitePerspective:
+            self.grid[0][3].piece = Queen(Cell(0,3), "q" + player[0], player, self.whitePerspective)
+            self.grid[0][4].piece = King(Cell(0,4), "k" + player[0], player, self.whitePerspective)
+            self.blackKing = self.grid[0][4].piece
+        else:
+            self.grid[0][3].piece = King(Cell(0,3), "k" + player[0], player, self.whitePerspective)
+            self.grid[0][4].piece = Queen(Cell(0,4), "q" + player[0], player, self.whitePerspective)
+            self.whiteKing = self.grid[0][3].piece
+        self.grid[0][5].piece = Bishop(Cell(0,5), "b2" + player[0], player, self.whitePerspective)
+        self.grid[0][6].piece = Knight(Cell(0,6), "n2" + player[0], player, self.whitePerspective)
+        self.grid[0][7].piece = Rook(Cell(0,7), "r2" + player[0], player, self.whitePerspective)
+        for i in range(8):
+            self.grid[1][i].piece = Pawn(Cell(1,i), "p" + str(i + 1) + player[0], player, self.whitePerspective)
+
+        if (player == "black"):
+            player = "white"
+        else:
+            player = "black"
+        self.grid[7][0].piece = Rook(Cell(7,0), "r1" + player[0], player, self.whitePerspective)
+        self.grid[7][1].piece = Knight(Cell(7,1), "n1" + player[0], player, self.whitePerspective)
+        self.grid[7][2].piece = Bishop(Cell(7,2), "b1" + player[0], player, self.whitePerspective)
+        if self.whitePerspective:
+            self.grid[7][3].piece = Queen(Cell(7,3), "q" + player[0], player, self.whitePerspective)
+            self.grid[7][4].piece = King(Cell(7,4), "k" + player[0], player, self.whitePerspective)
+            self.whiteKing = self.grid[7][4].piece
+        else:
+            self.grid[7][3].piece = King(Cell(7,3), "k" + player[0], player, self.whitePerspective)
+            self.grid[7][4].piece = Queen(Cell(7,4), "q" + player[0], player, self.whitePerspective)
+            self.blackKing = self.grid[7][3].piece
+        self.grid[7][5].piece = Bishop(Cell(7,5), "b2" + player[0], player, self.whitePerspective)
+        self.grid[7][6].piece = Knight(Cell(7,6), "n2" + player[0], player, self.whitePerspective)
+        self.grid[7][7].piece = Rook(Cell(7,7), "r2" + player[0], player, self.whitePerspective)
+        for i in range(8):
+            self.grid[6][i].piece = Pawn(Cell(6,i), "p" + str(i + 1) + player[0], player, self.whitePerspective)
+
 
         #White records
-        self.whiteKingIndex = whiteKingIndex
         self.pawnBCount = 0
         self.bishopBCount = 0
         self.knightBCount = 0
@@ -30,7 +95,6 @@ class Board:
         self.whitePoints = 0
         
         #Black records
-        self.blackKingIndex = blackKingIndex
         self.pawnWCount = 0
         self.bishopWCount = 0
         self.knightWCount = 0
@@ -77,11 +141,13 @@ class Board:
         emptySpace = ""
         if playerStr == "black":
             if self.pawnWCount < 3:
-                if self.bishopWCount == 2:
-                    textStr += "[p][p]"
+                if self.pawnWCount == 2:
+                    textStr += "[p][p] "
                 elif self.pawnWCount == 1:
                     textStr +="[p] "
                     emptySpace += "   "
+                elif self.pawnWCount == 0:
+                    emptySpace += "       "
             else:
                 textStr += "[p]*" + str(self.pawnWCount)
                 emptySpace += "  "
@@ -116,11 +182,13 @@ class Board:
                 emptySpace += "   "
         else:
             if self.pawnBCount < 3:
-                if self.bishopBCount == 2:
+                if self.pawnBCount == 2:
                     textStr += "[p][p]"
                 elif self.pawnBCount == 1:
                     textStr +="[p] "
                     emptySpace += "   "
+                elif self.pawnWCount == 0:
+                    emptySpace += "       "
             else:
                 textStr += "[p]*" + str(self.pawnBCount)
                 emptySpace += "  "
@@ -157,13 +225,12 @@ class Board:
         return textStr + emptySpace
 
     def checkStatus(self, turn):
-        king = self.grid[self.whiteKingIndex.r][self.whiteKingIndex.c].piece
+        king = self.whiteKing
         if turn == -1:
-            king = self.grid[self.blackKingIndex.r][self.blackKingIndex.c].piece
-        print ("wKing: ", self.whiteKingIndex.r,self.whiteKingIndex.c)
-        print ("bKing: ", self.blackKingIndex.r,self.blackKingIndex.c)
+            king = self.blackKing
+        print ("wKing: ", self.whiteKing.index.r,self.whiteKing.index.c)
+        print ("bKing: ", self.blackKing.index.r,self.blackKing.index.c)
         print ("this king: ", king.index.r, king.index.c)
-
 
         attackers = king.isUnderAttacked(self.grid)
         print(king.player)
