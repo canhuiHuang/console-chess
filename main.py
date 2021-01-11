@@ -30,13 +30,13 @@ def checkmate():
 def showBoard(board):
     print ("|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
     if board.whitePerspective and turn == -1:
-        print("|   black   ", board.getCapturedPieces("black"),"|")
+        print("|   black   ", board.getCapturedPieces("black"),"          |")
     elif board.whitePerspective and turn == 1:
-        print("|           ",board.getCapturedPieces("black"),"|")
+        print("|           ", board.getCapturedPieces("black"),"          |")
     elif (not board.whitePerspective and turn == 1):
-        print("|   white   ", board.getCapturedPieces("white"),"|")
+        print("|   white   ", board.getCapturedPieces("white"),"          |")
     elif not board.whitePerspective and turn == -1:
-        print("|           ",board.getCapturedPieces("white"),"|")
+        print("|           ", board.getCapturedPieces("white"),"          |")
     else:
         print("|                                                      |")
     print ("|______________________________________________________|")
@@ -59,13 +59,13 @@ def showBoard(board):
 
     print ("|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
     if board.whitePerspective and turn == 1:
-        print("|   white   ",board.getCapturedPieces("white"),"|")
+        print("|   white   ",board.getCapturedPieces("white"),"          |")
     elif board.whitePerspective and turn == -1:
-        print("|           ",board.getCapturedPieces("white"),"|")
+        print("|           ",board.getCapturedPieces("white"),"          |")
     elif not board.whitePerspective and turn == -1:
-        print("|   black   ",board.getCapturedPieces("black"),"|")
+        print("|   black   ",board.getCapturedPieces("black"),"          |")
     elif not board.whitePerspective and turn == 1:
-        print("|           ",board.getCapturedPieces("black"),"|")
+        print("|           ",board.getCapturedPieces("black"),"          |")
     else:
         print("|                                                      |")
     print ("|______________________________________________________|")
@@ -141,32 +141,58 @@ while (not gameOver):
     print(checkstate)
 
     if checkstate == 0:
-        #Input & Legal Move validation
-        playerInput = inputValidation(chessBoard)
-        pieceCoord = pair2Coord(playerInput[0] + playerInput[1], chessBoard)
-        piece = chessBoard.grid[pieceCoord.r][pieceCoord.c].piece
-        destinyCoord = pair2Coord(playerInput[3] + playerInput[4], chessBoard)
-
-        print(piece.player)
-        pString = "white"
-        if turn == -1:
-            pString = "black"
-        if piece.player != pString:
-            print("Can't move opponent's piece.")
-        while (not piece.moveable(destinyCoord,chessBoard)) or (piece.player != pString):
+        #Check for Stalemate
+        draw = True
+        if turn == 1:
+            if chessBoard.whiteKing.hasLegalMoves(chessBoard):
+                checkstate = 3
+                draw = False
+            else:
+                for piece in chessBoard.piecesWAlive:
+                    if piece.hasLegalMoves(chessBoard):
+                        checkstate = 3
+                        draw = False
+        else:
+            if chessBoard.blackKing.hasLegalMoves(chessBoard):
+                checkstate = 3
+                draw = False
+            else:
+                for piece in chessBoard.piecesBAlive:
+                    if piece.hasLegalMoves(chessBoard):
+                        checkstate = 3
+                        draw = False
+        
+        if checkstate == 0:
+            #Input & Legal Move validation
             playerInput = inputValidation(chessBoard)
             pieceCoord = pair2Coord(playerInput[0] + playerInput[1], chessBoard)
             piece = chessBoard.grid[pieceCoord.r][pieceCoord.c].piece
             destinyCoord = pair2Coord(playerInput[3] + playerInput[4], chessBoard)
+
             print(piece.player)
+            pString = "white"
+            if turn == -1:
+                pString = "black"
             if piece.player != pString:
                 print("Can't move opponent's piece.")
-        
-        piece.move(destinyCoord,chessBoard)
+            while (not piece.moveable(destinyCoord,chessBoard)) or (piece.player != pString):
+                playerInput = inputValidation(chessBoard)
+                pieceCoord = pair2Coord(playerInput[0] + playerInput[1], chessBoard)
+                piece = chessBoard.grid[pieceCoord.r][pieceCoord.c].piece
+                destinyCoord = pair2Coord(playerInput[3] + playerInput[4], chessBoard)
+                print(piece.player)
+                if piece.player != pString:
+                    print("Can't move opponent's piece.")
+            
+            piece.move(destinyCoord,chessBoard)
     
     elif checkstate == 2:
         print("CHECKMATE")
         checkmate()
+        gameOver = True
+
+    elif checkstate == 3:
+        print("STALEMATE")
         gameOver = True
     
     while checkstate == 1:
@@ -199,7 +225,6 @@ while (not gameOver):
         checkstate = ghostBoard.checkStatus(turn)
 
         if checkstate == 0:
-            print("whats up")
             piece.move(destinyCoord,chessBoard)
 
     #Next turn  

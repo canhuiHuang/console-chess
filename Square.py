@@ -31,60 +31,20 @@ class Board:
             self.xLabel = tempX
             self.whitePerspective = False
 
-        self.whiteKing = Empty(Cell(-1,-1), "0", "none", self.whitePerspective)
-        self.blackKing = Empty(Cell(-1,-1), "0", "none", self.whitePerspective)
+        self.whiteKing = Empty(Cell(-1,-1))
+        self.blackKing = Empty(Cell(-1,-1))
 
         #Create Empty 8x8 Board
         self.grid = []
         for r in range(8):
             tempRow = []
             for c in range(8):
-                tempRow.append(Square(Cell(self.yLabel[r], self.xLabel[c]),Empty(Cell(self.yLabel[r], self.xLabel[c]), "0", "none", self.whitePerspective), False))
+                tempRow.append(Square(Cell(self.yLabel[r], self.xLabel[c]),Empty(Cell(r, c)), False))
             self.grid.append(tempRow)
-        #Fill Board with pieces
-        player = "black"
-        if (turn == -1):
-            player = "white"
-        self.grid[0][0].piece = Rook(Cell(0,0), "r1" + player[0], player, self.whitePerspective)
-        self.grid[0][1].piece = Knight(Cell(0,1), "n1" + player[0], player, self.whitePerspective)
-        self.grid[0][2].piece = Bishop(Cell(0,2), "b1" + player[0], player, self.whitePerspective)
-        if self.whitePerspective:
-            self.grid[0][3].piece = Queen(Cell(0,3), "q" + player[0], player, self.whitePerspective)
-            self.grid[0][4].piece = King(Cell(0,4), "k" + player[0], player, self.whitePerspective)
-            self.blackKing = self.grid[0][4].piece
-        else:
-            self.grid[0][3].piece = King(Cell(0,3), "k" + player[0], player, self.whitePerspective)
-            self.grid[0][4].piece = Queen(Cell(0,4), "q" + player[0], player, self.whitePerspective)
-            self.whiteKing = self.grid[0][3].piece
-        self.grid[0][5].piece = Bishop(Cell(0,5), "b2" + player[0], player, self.whitePerspective)
-        self.grid[0][6].piece = Knight(Cell(0,6), "n2" + player[0], player, self.whitePerspective)
-        self.grid[0][7].piece = Rook(Cell(0,7), "r2" + player[0], player, self.whitePerspective)
-        for i in range(8):
-            self.grid[1][i].piece = Pawn(Cell(1,i), "p" + str(i + 1) + player[0], player, self.whitePerspective)
 
-        if (player == "black"):
-            player = "white"
-        else:
-            player = "black"
-        self.grid[7][0].piece = Rook(Cell(7,0), "r1" + player[0], player, self.whitePerspective)
-        self.grid[7][1].piece = Knight(Cell(7,1), "n1" + player[0], player, self.whitePerspective)
-        self.grid[7][2].piece = Bishop(Cell(7,2), "b1" + player[0], player, self.whitePerspective)
-        if self.whitePerspective:
-            self.grid[7][3].piece = Queen(Cell(7,3), "q" + player[0], player, self.whitePerspective)
-            self.grid[7][4].piece = King(Cell(7,4), "k" + player[0], player, self.whitePerspective)
-            self.whiteKing = self.grid[7][4].piece
-        else:
-            self.grid[7][3].piece = King(Cell(7,3), "k" + player[0], player, self.whitePerspective)
-            self.grid[7][4].piece = Queen(Cell(7,4), "q" + player[0], player, self.whitePerspective)
-            self.blackKing = self.grid[7][3].piece
-        self.grid[7][5].piece = Bishop(Cell(7,5), "b2" + player[0], player, self.whitePerspective)
-        self.grid[7][6].piece = Knight(Cell(7,6), "n2" + player[0], player, self.whitePerspective)
-        self.grid[7][7].piece = Rook(Cell(7,7), "r2" + player[0], player, self.whitePerspective)
-        for i in range(8):
-            self.grid[6][i].piece = Pawn(Cell(6,i), "p" + str(i + 1) + player[0], player, self.whitePerspective)
-
-
-        #White records
+        #Black 
+        self.piecesBAlive = []  #Excludes King
+        # killing records
         self.pawnBCount = 0
         self.bishopBCount = 0
         self.knightBCount = 0
@@ -94,7 +54,9 @@ class Board:
         self.blackDeadsQueue = []
         self.whitePoints = 0
         
-        #Black records
+        #White
+        self.piecesWAlive = []  #Excludes King
+        #killing records
         self.pawnWCount = 0
         self.bishopWCount = 0
         self.knightWCount = 0
@@ -104,13 +66,61 @@ class Board:
         self.whiteDeadsQueue = []
         self.blackPoints = 0
 
+        #Fill Board with pieces
+        player = "black"
+        if (not self.whitePerspective):
+            player = "white"
+        self.grid[0][0].piece = Rook(Cell(0,0), "r1" + player[0], player)
+        self.grid[0][1].piece = Knight(Cell(0,1), "n1" + player[0], player)
+        self.grid[0][2].piece = Bishop(Cell(0,2), "b1" + player[0], player)
+        if self.whitePerspective:
+            self.grid[0][3].piece = Queen(Cell(0,3), "q" + player[0], player)
+            self.grid[0][4].piece = King(Cell(0,4), "k" + player[0], player)
+            self.blackKing = self.grid[0][4].piece
+        else:
+            self.grid[0][3].piece = King(Cell(0,3), "k" + player[0], player)
+            self.grid[0][4].piece = Queen(Cell(0,4), "q" + player[0], player)
+            self.whiteKing = self.grid[0][3].piece
+        self.grid[0][5].piece = Bishop(Cell(0,5), "b2" + player[0], player)
+        self.grid[0][6].piece = Knight(Cell(0,6), "n2" + player[0], player)
+        self.grid[0][7].piece = Rook(Cell(0,7), "r2" + player[0], player)
+        for i in range(8):
+            self.grid[1][i].piece = Pawn(Cell(1,i), "p" + str(i + 1) + player[0], player)
+        for r in range(2):
+            for c in range(8):
+                self.appendAlivePieces(self.grid[r][c].piece,player)
+
+        if (player == "black"):
+            player = "white"
+        else:
+            player = "black"
+        self.grid[7][0].piece = Rook(Cell(7,0), "r1" + player[0], player)
+        self.grid[7][1].piece = Knight(Cell(7,1), "n1" + player[0], player)
+        self.grid[7][2].piece = Bishop(Cell(7,2), "b1" + player[0], player)
+        if self.whitePerspective:
+            self.grid[7][3].piece = Queen(Cell(7,3), "q" + player[0], player)
+            self.grid[7][4].piece = King(Cell(7,4), "k" + player[0], player)
+            self.whiteKing = self.grid[7][4].piece
+        else:
+            self.grid[7][3].piece = King(Cell(7,3), "k" + player[0], player)
+            self.grid[7][4].piece = Queen(Cell(7,4), "q" + player[0], player)
+            self.blackKing = self.grid[7][3].piece
+        self.grid[7][5].piece = Bishop(Cell(7,5), "b2" + player[0], player)
+        self.grid[7][6].piece = Knight(Cell(7,6), "n2" + player[0], player)
+        self.grid[7][7].piece = Rook(Cell(7,7), "r2" + player[0], player)
+        for i in range(8):
+            self.grid[6][i].piece = Pawn(Cell(6,i), "p" + str(i + 1) + player[0], player)
+        for r in range(2):
+            for c in range(8):
+                self.appendAlivePieces(self.grid[7 - r][c].piece,player)
+
     def appendDeadPiece(self,piece):
-        if piece.player == "white":
+        if piece.id[0] == "0":
+            del piece
+        elif piece.player == "white":
             self.blackPoints += piece.value
             self.whiteDeadsQueue.append(piece)
-            if piece.id[0] == "0":
-                pass
-            elif piece.id[0] == "p":
+            if piece.id[0] == "p":
                 self.pawnWCount += 1
             elif piece.id[0] == "b":
                 self.bishopWCount += 1
@@ -123,9 +133,7 @@ class Board:
         else:
             self.whitePoints += piece.value
             self.blackDeadsQueue.append(piece)
-            if piece.id[0] == "0":
-                pass
-            elif piece.id[0] == "p":
+            if piece.id[0] == "p":
                 self.pawnBCount += 1
             elif piece.id[0] == "b":
                 self.bishopBCount += 1
@@ -232,7 +240,7 @@ class Board:
         print ("bKing: ", self.blackKing.index.r,self.blackKing.index.c)
         print ("this king: ", king.index.r, king.index.c)
 
-        attackers = king.isUnderAttacked(self.grid)
+        attackers = king.isUnderAttacked(self)
         print(king.player)
         print("attackers: ", len(attackers))
         for var in attackers:
@@ -244,7 +252,7 @@ class Board:
                 print(1)
                 attacker = attackers[0]
                 #Can attacker be captured?
-                defenders = attacker.isUnderAttacked(self.grid)
+                defenders = attacker.isUnderAttacked(self)
                 print("defenders: ", len(defenders))
                 for defender in defenders:
                     if defender.id[0] == "k":
@@ -260,13 +268,13 @@ class Board:
                 #So, the only thing else that needs to be checked is to see whether the defender is pinned or not.
 
                 #Can the attack be blocked?
-                sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,self.grid)
+                sqrsBetweenAttackerNKing = attacker.shootRayTo(king.index,self)
                 ghostSqrs = sqrsBetweenAttackerNKing
                 for sqr in ghostSqrs:
                     sqr.player = attacker.player
-                    possibleBlockers = sqr.isUnderAttacked(self.grid)
+                    possibleBlockers = sqr.isUnderAttacked(self)
                     for blocker in possibleBlockers:
-                        if not blocker.amIPinnedTo(sqr.index, self.grid):
+                        if not blocker.amIPinnedTo(sqr.index, self):
                             return 1
                 print(3)
                 #Can King move?
@@ -293,6 +301,12 @@ class Board:
                 return 2
         else:
             return 0
+    
+    def appendAlivePieces(self, piece, playerStr):
+        if playerStr == "white":
+            self.piecesWAlive.append(piece)
+        else:
+            self.piecesBAlive.append(piece)
 
 
 

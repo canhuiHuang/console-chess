@@ -1,11 +1,22 @@
 from Piece import *
 
 class King(Piece):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+    def __init__(self, index, id, player):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
         self.graphic = "K" + player[0]
         self.value = 9999
         self.castleable = True
+
+    def hasLegalMoves(self, board):
+        unitVector = DirectionalVector(1,1)
+        for i in range(9):
+            sqr = self.index + unitVector
+            if (sqr.r <= 7 and sqr.r >= 0) and (sqr.c <= 7 and sqr.c >= 0):
+                print(sqr.r, sqr.c)
+                if self.moveable(sqr,self):
+                    return True
+            unitVector.rotate()
+        return False
 
     def moveable(self, pointB, board):
         deltaY = pointB.r - self.index.r
@@ -16,13 +27,13 @@ class King(Piece):
                 print("Obstructed.")
                 return False
             elif board.grid[pointB.r][pointB.c].piece.id[0] == "0":   #Moving to empty square
-                ghost = Empty(pointB,"ghost", self.player, self.whitePerspective)
-                if ghost.isUnderAttacked(board.grid):
+                ghost = Empty(pointB,"ghost", self.player)
+                if ghost.isUnderAttacked(board):
                     print("Can't move there.")
                     return False
                 else:
                     return True
-            elif board.grid[pointB.r][pointB.c].piece.player != self.player and board.grid[pointB.r][pointB.c].piece.isProtected(board.grid): #Trying to capture opponent's piece
+            elif board.grid[pointB.r][pointB.c].piece.player != self.player and board.grid[pointB.r][pointB.c].piece.isProtected(board): #Trying to capture opponent's piece
                 print("Piece is protected.")
                 return False
             else:   
@@ -31,14 +42,14 @@ class King(Piece):
             deltaX = pointB.c - self.index.c
             direction = DirectionalVector(0, deltaX)
 
-            if self.isUnderAttacked(board.grid):
+            if self.isUnderAttacked(board):
                 return False   
             for i in range(1,3):
-                ghost = Empty(Cell(self.index.r, self.index.c + i * direction.c),"ghost", self.player, self.whitePerspective)
-                if board.grid[self.index.r][self.index.c + i * direction.c].piece.id[0] != "0" or ghost.isUnderAttacked(board.grid):
+                ghost = Empty(Cell(self.index.r, self.index.c + i * direction.c),"ghost", self.player)
+                if board.grid[self.index.r][self.index.c + i * direction.c].piece.id[0] != "0" or ghost.isUnderAttacked(board):
                     print("Can't castle.")
                     return False
-            if board.grid[pointB.r][pointB.c].piece.isUnderAttacked(board.grid):
+            if board.grid[pointB.r][pointB.c].piece.isUnderAttacked(board):
                 print("Can't castle.")
                 return False
 
@@ -62,28 +73,59 @@ class King(Piece):
             self.index = Cell(pointB.r,pointB.c + direction.c * -1)
 
             #Delete
-            board.grid[kingTempIndex.r][kingTempIndex.c].piece = Empty(Cell(kingTempIndex.r, kingTempIndex.c), "0", "none", self.whitePerspective)
-            board.grid[RookTempIndex.r][RookTempIndex.c].piece = Empty(Cell(RookTempIndex.r, RookTempIndex.c), "0", "none", self.whitePerspective)
+            board.grid[kingTempIndex.r][kingTempIndex.c].piece = Empty(Cell(kingTempIndex.r, kingTempIndex.c))
+            board.grid[RookTempIndex.r][RookTempIndex.c].piece = Empty(Cell(RookTempIndex.r, RookTempIndex.c))
 
             self.castleable = False
 
         else:
             #Move
-            board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
+            board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
+            board.grid[pointB.r][pointB.c].piece.die(board)
             board.grid[pointB.r][pointB.c].piece = self
             #Update index
-            tempIndex = Cell(self.index.r, self.index.c)
             self.index = Cell(pointB.r,pointB.c)
-            board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
 
             self.castleable = False
 
 class Rook(Piece):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+    def __init__(self, index, id, player):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
         self.graphic = "R" + player[0]
         self.value = 5
         self.castleable = True
+
+    def hasLegalMoves(self, board):
+        def legalSqrsCheck(direction):
+            l = self.shootRay(direction,board)
+            for piece in l:
+                if piece.id[0] == "0":
+                    if self.moveable(piece.index,board):
+                        return True
+                elif piece.id[0] != "0" and piece.player != self.player:
+                    if self.moveable(piece.index,board):
+                        return True
+                elif piece.player == self.player:
+                    break
+                else:
+                    print("WTF")
+                    
+        #Check on the 4 directions of Rook
+        topDir = DirectionalVector(-1,0)
+        botDir = DirectionalVector(1,0)
+        rightDir = DirectionalVector(0,1)
+        leftDir = DirectionalVector(0,-1)
+        if legalSqrsCheck(topDir):
+            return True
+        if legalSqrsCheck(botDir):
+            return True
+        if legalSqrsCheck(rightDir):
+            return True
+        if legalSqrsCheck(leftDir):
+            return True
+        else:
+            return False
+        
 
     def moveable(self, pointB, board):
         if not self.amIPinnedTo(pointB, board):
@@ -111,20 +153,34 @@ class Rook(Piece):
 
     def move(self, pointB, board):
         #Move
-        board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
-        board.grid[pointB.r][pointB.c].piece =  self
+        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
+        board.grid[pointB.r][pointB.c].piece.die(board)
+        board.grid[pointB.r][pointB.c].piece = self
         #Update index
-        tempIndex = Cell(self.index.r, self.index.c)
         self.index = Cell(pointB.r,pointB.c)
-        board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
 
         self.castleable = False
 
 class Bishop(Piece):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+    def __init__(self, index, id, player):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
         self.graphic = "B" + player[0]
         self.value = 3
+
+    def hasLegalMoves(self, board):
+        def legalSqrsCheck(direction):
+            l = self.shootRay(direction,board)
+            for piece in l:
+                if piece.id[0] == "0":
+                    if self.moveable(piece.index,board):
+                        return True
+                elif piece.id[0] != "0" and piece.player != self.player:
+                    if self.moveable(piece.index,board):
+                        return True
+                elif piece.player == self.player:
+                    break
+                else:
+                    print("WTF")
 
     def moveable(self, pointB, board):
         if not self.amIPinnedTo(pointB, board):
@@ -151,8 +207,8 @@ class Bishop(Piece):
             return False
 
 class Knight(Piece):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+    def __init__(self, index, id, player):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
         self.graphic = "N" + player[0]
         self.value = 3
 
@@ -178,8 +234,8 @@ class Knight(Piece):
             return False
 
 class Pawn(Piece):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+    def __init__(self, index, id, player):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
         self.graphic = "P" + player[0]
         self.value = 1
         self.doublePushAvailable = True
@@ -198,12 +254,13 @@ class Pawn(Piece):
             board.grid[self.index.r][self.index.c + deltaX].piece.die(board)
 
         #Move
-        board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
-        board.grid[pointB.r][pointB.c].piece =  self
+        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
+
+        board.grid[pointB.r][pointB.c].piece.die(board)
+        board.grid[pointB.r][pointB.c].piece = self
         #Update index
-        tempIndex = Cell(self.index.r, self.index.c)
         self.index = Cell(pointB.r,pointB.c)
-        board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
+
         self.doublePushAvailable = False
 
     def moveable(self, pointB, board):
@@ -249,7 +306,7 @@ class Pawn(Piece):
                 print("Obstructed. Can't move there.")
                 return False
 
-            if (self.whitePerspective):     #Makes sure pawn can't move backward
+            if (board.whitePerspective):     #Makes sure pawn can't move backward
                 if (self.player == "white" and deltaY >= 0):
                     print("Can't move there.")
                     return False
@@ -283,8 +340,8 @@ class Pawn(Piece):
             return False
 
 class Queen(Bishop, Rook):
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
-        Piece.__init__(self, index, id, player, whitePerspectiveBool)
+    def __init__(self, index, id, player):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
         self.graphic = "Q" + player[0]
         self.value = 9
 

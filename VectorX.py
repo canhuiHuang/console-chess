@@ -47,7 +47,7 @@ class DirectionalVector:
     def reverse(self):
         return DirectionalVector(-1*self.r, -1*self.c)
 
-#Utilidades
+#Tools
 def change(a,b):
     return b - a
 

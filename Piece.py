@@ -1,38 +1,37 @@
 from VectorX import * 
 
 class Piece:
-    def __init__(self, index, id, player, whitePerspectiveBool):  #Cell, int, String, bool
+    def __init__(self, index, id, player):  #Cell, int, String, bool
         self.player = player    #ownership
         self.index = index
-        self.id = id
-        self.whitePerspective = whitePerspectiveBool
+        self.id = id    #ID must be unique
+
+    def __eq__(self, piece):
+        return self.id == piece.id
+
+    def __ne__(self, piece):
+        return self.id != piece.id
 
     def move(self, pointB, board):
         #Move
-        board.appendDeadPiece(board.grid[pointB.r][pointB.c].piece)
+        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
+        board.grid[pointB.r][pointB.c].piece.die(board)
         board.grid[pointB.r][pointB.c].piece = self
         #Update index
-        tempIndex = Cell(self.index.r, self.index.c)
-        board.grid[self.index.r][self.index.c].piece.index = Cell(pointB.r,pointB.c)
-        board.grid[tempIndex.r][tempIndex.c].piece = Empty(Cell(tempIndex.r, tempIndex.c), "0", "none", self.whitePerspective)
-        return True
-    
-    def unmove(self, point, board):
+        self.index = Cell(pointB.r,pointB.c)
 
-        pass
-
-    def isProtected(self, grid):
+    def isProtected(self, board):
         rivalPlayer = "black"
         if self.player == "black":
             rivalPlayer = "white"
-        ghostEvilSelf = Empty(Cell(self.index.r, self.index.c), "ghost", rivalPlayer, self.whitePerspective)
-        if ghostEvilSelf.isUnderAttacked(grid):
+        ghostEvilSelf = Empty(Cell(self.index.r, self.index.c), "ghost", rivalPlayer)
+        if ghostEvilSelf.isUnderAttacked(board):
             return True
         else:
             return False
     
-    def isUnderAttacked(self, grid):
-        l = self.radar("threats", grid)
+    def isUnderAttacked(self, board):
+        l = self.radar("threats", board.grid)
         attackers = []
 
         for i in range (len(l)):
@@ -58,10 +57,10 @@ class Piece:
             elif l[i].id[0] == "p":  #Pawn
                 deltaX = l[i].index.c - self.index.c
                 deltaY = l[i].index.r - self.index.r
-                if (self.whitePerspective and self.player == "white") or (not self.whitePerspective and self.player == "black"):
+                if (board.whitePerspective and self.player == "white") or (not board.whitePerspective and self.player == "black"):
                     if abs(deltaX) == 1 and deltaY == -1:
                         attackers.append(l[i])
-                elif (self.whitePerspective and self.player == "black") or (not self.whitePerspective and self.player == "white"):
+                elif (board.whitePerspective and self.player == "black") or (not board.whitePerspective and self.player == "white"):
                     if abs(deltaX) == 1 and deltaY == 1:
                         attackers.append(l[i])
 
@@ -122,7 +121,7 @@ class Piece:
                         trigger = False
                 i += 1
 
-            return Empty(Cell(-1,-1), "0", "none", True)  #PlaceHolder Piece
+            return Empty(Cell(-1,-1))  #PlaceHolder Piece
 
         def HorsePositonsCheck(topDiff,sideDiff, strType):
             r = self.index.r + topDiff
@@ -132,14 +131,14 @@ class Piece:
                     if grid[r][c].piece.player == self.player:
                         return grid[r][c].piece
                     elif grid[r][c].piece.player != self.player:
-                        return Empty(Cell(-1,-1), "0", "none", True)
+                        return Empty(Cell(-1,-1))
                 elif strType == "threats":
                     if grid[r][c].piece.player != self.player:
                         return grid[r][c].piece
                     elif grid[r][c].piece.player == self.player:
-                        return Empty(Cell(-1,-1), "0", "none", True)
+                        return Empty(Cell(-1,-1))
             else:
-                return Empty(Cell(-1,-1), "0", "none", True)  #PlaceHolder Piece
+                return Empty(Cell(-1,-1))  #PlaceHolder Piece
 
         #Lineal Checks: / / \ \   -> <- ^ v
         l.append(linealChecks("-","+",min(squaresToTheRight,squaresToTheTop),strType)) #-,+ #/
@@ -169,17 +168,17 @@ class Piece:
 
         return l
         
-    def shootRayTo(self, pointB, grid): #Returns a list of pieces between self and pointB. Only works correctly on horizontaL, vertical, 45deg diagonals. SHOULD NOT BE USED ON HORSES AS POINTB!
+    def shootRayTo(self, pointB, board): #Returns a list of pieces between self and pointB. Only works correctly on horizontaL, vertical, 45deg diagonals. SHOULD NOT BE USED ON HORSES AS POINTB!
         l = []
         deltaX = pointB.c - self.index.c
         deltaY = pointB.r - self.index.r
         direction = DirectionalVector(deltaY, deltaX)
 
         for i in range(1,max(abs(deltaX),abs(deltaY))):
-            l.append(grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)].piece)
+            l.append(board.grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)].piece)
         return l
 
-    def shootRay(self, direction, grid):    #Shoot a ray in a direction and return an ordered list of pieces encountered
+    def shootRay(self, direction, board):    #Shoot a ray in a direction and return an ordered list of pieces encountered
         l = []
 
         #calculate distance from piece to two edges:
@@ -201,7 +200,7 @@ class Piece:
 
         distance = max(distanceC, distanceR)
         for i in range (distance):
-            l.append(grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece)
+            l.append(board.grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece)
 
         return l
 
@@ -212,7 +211,7 @@ class Piece:
             turn = -1
         tempPointBPiece = board.grid[pointB.r][pointB.c].piece
         board.grid[pointB.r][pointB.c].piece = self
-        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
+        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
         checkstate = board.checkStatus(turn)
         
         board.grid[pointB.r][pointB.c].piece = tempPointBPiece
@@ -224,11 +223,19 @@ class Piece:
             return True
 
     def die(self,board):
+        if self.id[0] != "0":
+            if self.player == "white":
+                board.piecesWAlive.remove(self)
+            elif self.player == "black":
+                board.piecesBAlive.remove(self)
+        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
         board.appendDeadPiece(self)
-        self = Empty(Cell(self.index.r, self.index.c), "0", "none", self.whitePerspective)
+
 class Empty(Piece):
-    graphic = "  "
-    value = 0
+    def __init__(self, index, id = "0", player = "none"):  #Cell, int, String, bool
+        Piece.__init__(self, index, id, player)
+        self.graphic = "  "
+        self.value = 0
 
     def moveable(self, pointB, grid):
         print("There is nothing to move!")
