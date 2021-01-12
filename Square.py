@@ -236,33 +236,20 @@ class Board:
         king = self.whiteKing
         if turn == -1:
             king = self.blackKing
-        print ("wKing: ", self.whiteKing.index.r,self.whiteKing.index.c)
-        print ("bKing: ", self.blackKing.index.r,self.blackKing.index.c)
-        print ("this king: ", king.index.r, king.index.c)
 
         attackers = king.isUnderAttacked(self)
-        print(king.player)
-        print("attackers: ", len(attackers))
-        for var in attackers:
-            print("attacker: ", var.id)
-
         if len(attackers) > 0:
             if len(attackers) == 1: #Single Attack
                 
-                print(1)
                 attacker = attackers[0]
                 #Can attacker be captured?
                 defenders = attacker.isUnderAttacked(self)
-                print("defenders: ", len(defenders))
                 for defender in defenders:
                     if defender.id[0] == "k":
                         if king.moveable(attacker.index, self):
-                            print("king moveable")
                             return 1
                     elif not defender.amIPinnedTo(attacker.index, self):
-                        print("a defender is not pinned")
                         return 1
-                print(2)
                 
                 #The reason amIPinned can be used is because the defender is attacking the Attacker, which means that it is LEGAL to move there,
                 #So, the only thing else that needs to be checked is to see whether the defender is pinned or not.
@@ -276,22 +263,18 @@ class Board:
                     for blocker in possibleBlockers:
                         if not blocker.amIPinnedTo(sqr.index, self):
                             return 1
-                print(3)
                 #Can King move?
                 unitVector = DirectionalVector(1,1)
                 for i in range(9):
                     sqr = king.index + unitVector
                     if (sqr.r <= 7 and sqr.r >= 0) and (sqr.c <= 7 and sqr.c >= 0):
-                        print(sqr.r, sqr.c)
                         if king.moveable(sqr,self):
                             return 1
                     unitVector.rotate()
-                print(4)
                 
                 return 2
             
             elif len(attackers) == 2: #Double Attack
-                print(69)
                 #Can King move?
                 unitVector = DirectionalVector(1,1)
                 for i in range(9):

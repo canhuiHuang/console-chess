@@ -127,9 +127,6 @@ gameOver = False
 ###############################################
 
 chessBoard = Board(turn)
-print("despues del constructor")
-print ("wKing: ", chessBoard.whiteKing.index.r,chessBoard.whiteKing.index.c)
-print ("bKing: ", chessBoard.blackKing.index.r,chessBoard.blackKing.index.c)
 
 turn = 1
 while (not gameOver):
@@ -138,29 +135,32 @@ while (not gameOver):
 
     #CheckState
     checkstate = chessBoard.checkStatus(turn)
-    print(checkstate)
 
     if checkstate == 0:
         #Check for Stalemate
-        draw = True
+        stalemate = True
         if turn == 1:
             if chessBoard.whiteKing.hasLegalMoves(chessBoard):
-                checkstate = 3
-                draw = False
+                checkstate = 0
             else:
                 for piece in chessBoard.piecesWAlive:
                     if piece.hasLegalMoves(chessBoard):
-                        checkstate = 3
-                        draw = False
+                        checkstate = 0
+                        stalemate = False
+                        break
+                if stalemate == True:
+                    checkstate = 3
         else:
             if chessBoard.blackKing.hasLegalMoves(chessBoard):
-                checkstate = 3
-                draw = False
+                checkstate = 0
             else:
                 for piece in chessBoard.piecesBAlive:
                     if piece.hasLegalMoves(chessBoard):
-                        checkstate = 3
-                        draw = False
+                        checkstate = 0
+                        stalemate = False
+                        break
+                if stalemate == True:
+                    checkstate = 3
         
         if checkstate == 0:
             #Input & Legal Move validation
@@ -169,7 +169,6 @@ while (not gameOver):
             piece = chessBoard.grid[pieceCoord.r][pieceCoord.c].piece
             destinyCoord = pair2Coord(playerInput[3] + playerInput[4], chessBoard)
 
-            print(piece.player)
             pString = "white"
             if turn == -1:
                 pString = "black"
@@ -191,7 +190,7 @@ while (not gameOver):
         checkmate()
         gameOver = True
 
-    elif checkstate == 3:
+    if checkstate == 3:
         print("STALEMATE")
         gameOver = True
     

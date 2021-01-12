@@ -12,6 +12,9 @@ class Piece:
     def __ne__(self, piece):
         return self.id != piece.id
 
+    def moveable(self, pointB, board):
+        pass
+
     def move(self, pointB, board):
         #Move
         board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
@@ -127,12 +130,14 @@ class Piece:
             r = self.index.r + topDiff
             c = self.index.c + sideDiff
             if not (c > 7 or r >7 or c < 0 or r < 0) and grid[r][c].piece.id[0] != 0:
-                if strType == "allies+":
+                if strType == "allies+" or strType == "horse":
                     if grid[r][c].piece.player == self.player:
+                        return grid[r][c].piece
+                    if grid[r][c].piece.player != self.player and strType == "horse":
                         return grid[r][c].piece
                     elif grid[r][c].piece.player != self.player:
                         return Empty(Cell(-1,-1))
-                elif strType == "threats":
+                elif strType == "threats" or strType == "horse":
                     if grid[r][c].piece.player != self.player:
                         return grid[r][c].piece
                     elif grid[r][c].piece.player == self.player:
@@ -141,15 +146,16 @@ class Piece:
                 return Empty(Cell(-1,-1))  #PlaceHolder Piece
 
         #Lineal Checks: / / \ \   -> <- ^ v
-        l.append(linealChecks("-","+",min(squaresToTheRight,squaresToTheTop),strType)) #-,+ #/
-        l.append(linealChecks("+","-",min(squaresToTheLeft,squaresToTheBottom),strType)) #+,- #/
-        l.append(linealChecks("+","+",min(squaresToTheRight,squaresToTheBottom),strType)) #-,+ #\
-        l.append(linealChecks("-","-",min(squaresToTheLeft,squaresToTheTop),strType)) #+,- #\
+        if (strType != "horse"):
+            l.append(linealChecks("-","+",min(squaresToTheRight,squaresToTheTop),strType)) #-,+ #/
+            l.append(linealChecks("+","-",min(squaresToTheLeft,squaresToTheBottom),strType)) #+,- #/
+            l.append(linealChecks("+","+",min(squaresToTheRight,squaresToTheBottom),strType)) #-,+ #\
+            l.append(linealChecks("-","-",min(squaresToTheLeft,squaresToTheTop),strType)) #+,- #\
 
-        l.append(linealChecks("0","+",squaresToTheRight,strType)) #0,+ #->
-        l.append(linealChecks("0","-",squaresToTheLeft,strType)) #0,- #<-
-        l.append(linealChecks("-","0",squaresToTheTop,strType)) #0,+ #^
-        l.append(linealChecks("+","0",squaresToTheBottom,strType)) #0,+ #v
+            l.append(linealChecks("0","+",squaresToTheRight,strType)) #0,+ #->
+            l.append(linealChecks("0","-",squaresToTheLeft,strType)) #0,- #<-
+            l.append(linealChecks("-","0",squaresToTheTop,strType)) #0,+ #^
+            l.append(linealChecks("+","0",squaresToTheBottom,strType)) #0,+ #v
 
         if (strType == "threats" or strType == "allies+"):
             #Horse Positions Checks:
@@ -181,26 +187,12 @@ class Piece:
     def shootRay(self, direction, board):    #Shoot a ray in a direction and return an ordered list of pieces encountered
         l = []
 
-        #calculate distance from piece to two edges:
-        distanceC = 0
-        distanceR = 0
-        if direction.c > 0:
-            distanceC = 7 - self.index.c
-        elif direction.c < 0:
-            distanceC = abs(0 - self.index.c)
-        else:
-            distanceC = 0
-        
-        if direction.r > 0:
-            distanceR = 7 - self.index.r
-        elif direction.r < 0:
-            distanceR = abs(0 - self.index.r)
-        else:
-            distanceR = 0
-
-        distance = max(distanceC, distanceR)
-        for i in range (distance):
-            l.append(board.grid[self.index.r + direction.r * (i + 1)][self.index.c + direction.c * (i + 1)].piece)
+        for i in range (1,8):
+            r = self.index.r + direction.r * (i) 
+            c = self.index.c + direction.c * (i)
+            if r > 7 or r < 0 or c > 7 or c < 0:
+                break
+            l.append(board.grid[r][c].piece)
 
         return l
 
@@ -219,7 +211,6 @@ class Piece:
         if checkstate == 0:
             return False
         else:
-            print("Pinned")
             return True
 
     def die(self,board):
@@ -230,6 +221,21 @@ class Piece:
                 board.piecesBAlive.remove(self)
         board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
         board.appendDeadPiece(self)
+
+    def legalSqrsCheck(self,direction,board):  #Check if a piece has legal moves on sqrs in a direction, but it stops when an obstacle is encountered.
+        l = self.shootRay(direction,board)  #Direction can be either Cell or DirectionalVector.
+        for piece in l:
+            if piece.id[0] == "0":
+                if self.moveable(piece.index,board):
+                    return True
+            elif piece.id[0] != "0" and piece.player != self.player:
+                if self.moveable(piece.index,board):
+                    return True
+            elif piece.player == self.player:
+                break
+            else:
+                print("WTH")
+        return False
 
 class Empty(Piece):
     def __init__(self, index, id = "0", player = "none"):  #Cell, int, String, bool
