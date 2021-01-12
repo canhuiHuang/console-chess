@@ -125,34 +125,7 @@ blackInputPrompt = "Black moves: "
 gameOver = False
 ###############################################
 
-showBoard(chessBoard)pl = chessBoard.grid[6][3].piece.shootRay(DirectionalVector(-1,0))
+showBoard(chessBoard)
 
-#Promotion?
-        if board.whitePerspective and self.player == "white":
-            if pointB.index.r == 0:
-                self.promote(board)
-        elif not board.whitePerspective and self.player == "black":
-            if pointB.index.r == 0:
-                self.promote(board)
-        elif board.whitePerspective and self.player == "black":
-            if pointB.index.r == 7:
-                self.promote(board)
-        elif not board.whitePerspective and self.player == "white":
-            if pointB.index.r == 7:
-                self.promote(board)
+grid[][]
 
-def promote(self, board):
-        cmd = (input("Promote to piece[Queen(Q), Knight(N),Bishop(B),Rook(R)]: ")).lower()
-        while cmd not in ["q","n","b","r"]:
-            cmd = (input("Please type Q, N, B or R: ")).lower()
-        
-        #Mutate
-        garbagePiece = self
-        if cmd == "q":
-            self = Queen(self.index,"q"+ self.id[1] + self.player[0],self.player)
-        if cmd == "n":
-            self = Knight(self.index,"q"+ self.id[1] + self.player[0],self.player)
-        if cmd == "b":
-            self = Queen(self.index,"q"+ self.id[1] + self.player[0],self.player)
-        if cmd == "r":
-            self = Queen(self.index,"q"+ self.id[1] + self.player[0],self.player)

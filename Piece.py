@@ -17,9 +17,9 @@ class Piece:
 
     def move(self, pointB, board):
         #Move
-        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
-        board.grid[pointB.r][pointB.c].piece.die(board)
-        board.grid[pointB.r][pointB.c].piece = self
+        board.grid[self.index.r][self.index.c] = Empty(Cell(self.index.r, self.index.c))
+        board.grid[pointB.r][pointB.c].die(board)
+        board.grid[pointB.r][pointB.c] = self
         #Update index
         self.index = Cell(pointB.r,pointB.c)
 
@@ -113,14 +113,14 @@ class Piece:
                     pass
                 
                 if strType == "threats":
-                    if (grid[r][c].piece.id[0] != "0" and grid[r][c].piece.player != self.player):
-                        return grid[r][c].piece
-                    elif (grid[r][c].piece.player == self.player):
+                    if (grid[r][c].id[0] != "0" and grid[r][c].player != self.player):
+                        return grid[r][c]
+                    elif (grid[r][c].player == self.player):
                         trigger = False
                 elif strType == "allies" or strType == "allies+":
-                    if (grid[r][c].piece.id[0] != "0" and grid[r][c].piece.player == self.player):
-                        return grid[r][c].piece
-                    elif (grid[r][c].piece.player != self.player):
+                    if (grid[r][c].id[0] != "0" and grid[r][c].player == self.player):
+                        return grid[r][c]
+                    elif (grid[r][c].player != self.player):
                         trigger = False
                 i += 1
 
@@ -129,18 +129,18 @@ class Piece:
         def HorsePositonsCheck(topDiff,sideDiff, strType):
             r = self.index.r + topDiff
             c = self.index.c + sideDiff
-            if not (c > 7 or r >7 or c < 0 or r < 0) and grid[r][c].piece.id[0] != 0:
+            if not (c > 7 or r >7 or c < 0 or r < 0) and grid[r][c].id[0] != 0:
                 if strType == "allies+" or strType == "horse":
-                    if grid[r][c].piece.player == self.player:
-                        return grid[r][c].piece
-                    if grid[r][c].piece.player != self.player and strType == "horse":
-                        return grid[r][c].piece
-                    elif grid[r][c].piece.player != self.player:
+                    if grid[r][c].player == self.player:
+                        return grid[r][c]
+                    if grid[r][c].player != self.player and strType == "horse":
+                        return grid[r][c]
+                    elif grid[r][c].player != self.player:
                         return Empty(Cell(-1,-1))
                 elif strType == "threats" or strType == "horse":
-                    if grid[r][c].piece.player != self.player:
-                        return grid[r][c].piece
-                    elif grid[r][c].piece.player == self.player:
+                    if grid[r][c].player != self.player:
+                        return grid[r][c]
+                    elif grid[r][c].player == self.player:
                         return Empty(Cell(-1,-1))
             else:
                 return Empty(Cell(-1,-1))  #PlaceHolder Piece
@@ -181,7 +181,7 @@ class Piece:
         direction = DirectionalVector(deltaY, deltaX)
 
         for i in range(1,max(abs(deltaX),abs(deltaY))):
-            l.append(board.grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)].piece)
+            l.append(board.grid[self.index.r + (i * direction.r)][self.index.c + (i * direction.c)])
         return l
 
     def shootRay(self, direction, board):    #Shoot a ray in a direction and return an ordered list of pieces encountered
@@ -192,7 +192,7 @@ class Piece:
             c = self.index.c + direction.c * (i)
             if r > 7 or r < 0 or c > 7 or c < 0:
                 break
-            l.append(board.grid[r][c].piece)
+            l.append(board.grid[r][c])
 
         return l
 
@@ -201,13 +201,13 @@ class Piece:
         turn = 1
         if self.player == "black":
             turn = -1
-        tempPointBPiece = board.grid[pointB.r][pointB.c].piece
-        board.grid[pointB.r][pointB.c].piece = self
-        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
+        tempPointBPiece = board.grid[pointB.r][pointB.c]
+        board.grid[pointB.r][pointB.c] = self
+        board.grid[self.index.r][self.index.c] = Empty(Cell(self.index.r, self.index.c))
         checkstate = board.checkStatus(turn)
         
-        board.grid[pointB.r][pointB.c].piece = tempPointBPiece
-        board.grid[self.index.r][self.index.c].piece = self
+        board.grid[pointB.r][pointB.c] = tempPointBPiece
+        board.grid[self.index.r][self.index.c] = self
         if checkstate == 0:
             return False
         else:
@@ -219,7 +219,7 @@ class Piece:
                 board.piecesWAlive.remove(self)
             elif self.player == "black":
                 board.piecesBAlive.remove(self)
-        board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
+        board.grid[self.index.r][self.index.c] = Empty(Cell(self.index.r, self.index.c))
         board.appendDeadPiece(self)
 
     def legalSqrsCheck(self,direction,board):  #Check if a piece has legal moves on sqrs in a direction, but it stops when an obstacle is encountered.
