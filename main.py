@@ -28,18 +28,18 @@ def checkmate():
         print("Checkmate. White Wins!")
 
 def showBoard(board):
-    print ("|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
+    print ("|‾‾‾‾‾‾‾||‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
     if board.whitePerspective and turn == -1:
-        print("|   black   ", board.getCapturedPieces("black"),"          |")
+        print("| black ||", board.getCapturedPieces("black"),"|")
     elif board.whitePerspective and turn == 1:
-        print("|           ", board.getCapturedPieces("black"),"          |")
+        print("|       ||", board.getCapturedPieces("black"),"|")
     elif (not board.whitePerspective and turn == 1):
-        print("|   white   ", board.getCapturedPieces("white"),"          |")
+        print("| white ||", board.getCapturedPieces("white"),"|")
     elif not board.whitePerspective and turn == -1:
-        print("|           ", board.getCapturedPieces("white"),"          |")
+        print("|       ||", board.getCapturedPieces("white"),"|")
     else:
-        print("|                                                      |")
-    print ("|______________________________________________________|")
+        print("|                                             |")
+    print ("|_______||_________________________________|")
 
     print ("  ", end = '')
     for i in range(8):
@@ -50,25 +50,36 @@ def showBoard(board):
         print(board.yLabel[7 - r], "| ", end = '')
         for c in range(8):
             print(board.grid[r][c].piece.graphic,"| ", end = '')
-        print()
+        if r == 0:
+            if board.whitePerspective:
+                print(board.getscoreDiff("black"))
+            else:
+                print(board.getscoreDiff("white"))
+        elif r == 7:
+            if board.whitePerspective:
+                print(board.getscoreDiff("white"))
+            else:
+                print(board.getscoreDiff("black"))
+        else:
+            print()
     print("   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ ")
     print ("  ", end = '')
     for i in range(8):
         print(" ", board.xLabel[i], " ", end = '')
     print()
 
-    print ("|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
+    print ("|‾‾‾‾‾‾‾||‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|")
     if board.whitePerspective and turn == 1:
-        print("|   white   ",board.getCapturedPieces("white"),"          |")
+        print("| white ||",board.getCapturedPieces("white"),"|")
     elif board.whitePerspective and turn == -1:
-        print("|           ",board.getCapturedPieces("white"),"          |")
+        print("|       ||",board.getCapturedPieces("white"),"|")
     elif not board.whitePerspective and turn == -1:
-        print("|   black   ",board.getCapturedPieces("black"),"          |")
+        print("| black ||",board.getCapturedPieces("black"),"|")
     elif not board.whitePerspective and turn == 1:
-        print("|           ",board.getCapturedPieces("black"),"          |")
+        print("|       ||",board.getCapturedPieces("black"),"|")
     else:
-        print("|                                                      |")
-    print ("|______________________________________________________|")
+        print("|                                             |")
+    print ("|_______||_________________________________|")
 
 def isCmdValid(cmd, board):    #Also sets the formatting.
     newText = ""

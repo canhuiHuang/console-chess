@@ -291,6 +291,21 @@ class Board:
         else:
             self.piecesBAlive.append(piece)
 
+    def getscoreDiff(self, playerStr):
+        scoreString = ""
+        if self.blackPoints - self.whitePoints == 0:
+            return scoreString
 
+        if playerStr == "black":
+            diff = self.blackPoints - self.whitePoints
+            if diff > 0:
+                scoreString += "+"
+            scoreString += str(diff)
+        else:
+            diff = self.whitePoints - self.blackPoints
+            if diff > 0:
+                scoreString += "+"
+            scoreString += str(diff)
+        return scoreString
 
 

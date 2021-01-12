@@ -221,9 +221,26 @@ class Pawn(Piece):
                 if self.moveable(sqr,board):
                     return True
         return False
-        
+    
 
     def move(self, pointB, board):
+        def promote(board):
+            cmd = (input("Promote to piece[Queen(Q), Knight(N),Bishop(B),Rook(R)]: ")).lower()
+            while cmd not in ["q","n","b","r"]:
+                cmd = (input("Please type Q, N, B or R: ")).lower()
+            
+            #Mutate
+            garbagePiece = self
+            if cmd == "q":
+                self = Queen(self.index,"q"+ self.id[1] + self.player[0],self.player)
+            elif cmd == "n":
+                self = Knight(self.index,"n"+ self.id[1] + self.player[0],self.player)
+            elif cmd == "b":
+                self = Bishop(self.index,"b"+ self.id[1] + self.player[0],self.player)
+            elif cmd == "r":
+                self = Rook(self.index,"r"+ self.id[1] + self.player[0],self.player)
+            del garbagePiece
+                
         #En passant Boolean
         deltaY = pointB.r - self.index.r
         deltaX = pointB.c - self.index.c
@@ -237,13 +254,25 @@ class Pawn(Piece):
 
         #Move
         board.grid[self.index.r][self.index.c].piece = Empty(Cell(self.index.r, self.index.c))
-
         board.grid[pointB.r][pointB.c].piece.die(board)
         board.grid[pointB.r][pointB.c].piece = self
         #Update index
         self.index = Cell(pointB.r,pointB.c)
-
         self.doublePushAvailable = False
+
+        #Promotion?
+        if board.whitePerspective and self.player == "white":
+            if pointB.index.r == 0:
+                promote(board)
+        elif not board.whitePerspective and self.player == "black":
+            if pointB.index.r == 0:
+                promote(board)
+        elif board.whitePerspective and self.player == "black":
+            if pointB.index.r == 7:
+                promote(board)
+        elif not board.whitePerspective and self.player == "white":
+            if pointB.index.r == 7:
+                promote(board)
 
     def moveable(self, pointB, board):
         if not self.amIPinnedTo(pointB, board):
